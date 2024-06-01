@@ -1,196 +1,101 @@
-import os
-import math
-import time
-import re
-import socket
-import threading
-import logging
-import textual.app
-import textual.widgets
+import curses
+from . import N, Q, ui, state, net, TARGET_IP
+from .state import *
 
-UTF8 = 'utf-8'
-APP_PATH = os.path.dirname(os.path.abspath(__file__))
-PORT = 19272
-TARGET_IP = '192.168.1.234'
+EPOCH = 3
 
-log = logging.getLogger("dbx")
-log.setLevel(logging.DEBUG)
-log.addHandler(logging.FileHandler(os.path.join(APP_PATH, 'dbx.log')))
-log.debug('-'*80)
+def main(stdscr):
+    LABEL = (4, 1)
+    METER = (22, 1)
+    LEVEL = (8, 1)
 
-class Node:
-    def __init__(self, name):
-        self.name = name
-        self.data = {}
-        self.children = {}
-        self.parent = None
-        self.callbacks = []
-    def __getitem__(self, key):
-        if not key in self.children:
-            self.children[key] = Node(key)
-            self.children[key].parent = self
-        return self.children[key]
-    def __setitem__(self, key, value):
-        if not key in self.children:
-            self.children[key] = Node(key)
-            self.children[key].parent = self
-        self.children[key] = value
-    def __contains__(self, key):
-        return key in self.children
-    def __repr__(self):
-        return f"Node({self.path}, {self.data}, {self.children})"
-    def __str__(self):
-        """Used in the public user interface to display the contents of the node."""
-        return str(self.data)
-    def add_callback(self, callback):
-        self.callbacks.append(callback)
-    def set_data(self, data):
-        self.data = data
-        for callback in self.callbacks:
-            callback(self)
-    @property
-    def path(self):
-        path, node = [self.name], self
-        while node.parent:
-            path.append(node.parent.name)
-            node = node.parent
-        path.reverse()
-        return '\\'.join(path)
-    @classmethod
-    def parse(cls, path: str, data):
-        global N
-        node, keys = N, path.split('\\')[2:]
-        for key in keys:
-            node = node.children[key]
-        node.set_data(data)
-        return node
+    grid = ui.app(80, 30)
+    grid.init(stdscr)
+    sock, listener = net.setup_tcp()
+    state.sub()
 
-N = Node('\\') # localstore
+    grid.append(ui.title((0, 0), (80, 3), NAME))
+    grid.append(ui.str((0, 3), (80, 1), DEV))
+    grid.append(ui.str((65, 28), (20, 1), f"{TARGET_IP}"))
+    grid.append(ui.str((0, 28), (65, 1), f" [q]uit  [r]esub"))
 
-def send_message(sock: socket.socket, message: str):
-    sock.sendall(message.encode(UTF8) + b'\n')
-def asyncget(sock: socket.socket, node: Node):
-    send_message(sock, f"asyncget {node.path}")
-def sub(sock: socket.socket, node: Node):
-    send_message(sock, f"sub {node.path}")
+    grid.append(ui.box((0, 6), (40, 7), [
+        ui.str((6, 0), (6, 2), "┤Left├"),
+        ui.str((2, 2), LABEL, "IN"),
+        ui.str((2, 3), LABEL, "HIGH"),
+        ui.str((2, 4), LABEL, "MID"),
+        ui.str((2, 5), LABEL, "LOW"),
+        ui.bar((7, 2), METER, L_IN),
+        ui.bar((7, 3), METER, L_HIGH),
+        ui.bar((7, 4), METER, L_MID),
+        ui.bar((7, 5), METER, L_LOW),
+        ui.str((30, 2), LEVEL, L_IN),
+        ui.str((30, 3), LEVEL, L_HIGH),
+        ui.str((30, 4), LEVEL, L_MID),
+        ui.str((30, 5), LEVEL, L_LOW),
+        ui.str((35, 2), (5, 1), L_IN_CLIP),
+        ui.str((35, 3), (5, 1), MUTE_L_HIGH),
+        ui.str((35, 4), (5, 1), MUTE_L_MID),
+        ui.str((35, 5), (5, 1), MUTE_L_LOW),
+    ]))
 
-Q = [
-    (send_message, "connect administrator administrator"),
-    (sub, N['Preset']['InputMeters']['SV']['LeftInput']),
-    (sub, N['Preset']['InputMeters']['SV']['RightInput']), 
-    (sub, N['Preset']['InputMeters']['SV']['LeftInput']),
-    (sub, N['Preset']['InputMeters']['SV']['RightInput']), 
-    (sub, N['Preset']['OutputMeters']['SV']['HighLeftOutput']), 
-    (sub, N['Preset']['OutputMeters']['SV']['HighRightOutput']),
-    (sub, N['Preset']['OutputMeters']['SV']['MidLeftOutput']),
-    (sub, N['Preset']['OutputMeters']['SV']['MidRightOutput']),
-    (sub, N['Preset']['OutputMeters']['SV']['LowLeftOutput']),
-    (sub, N['Preset']['OutputMeters']['SV']['LowRightOutput']),
-]
+    grid.append(ui.box((40, 6), (40, 7), [
+        ui.str((6, 0), (7, 2), "┤Right├"),
+        ui.str((2, 2), LABEL, "IN"),
+        ui.str((2, 3), LABEL, "HIGH"),
+        ui.str((2, 4), LABEL, "MID"),
+        ui.str((2, 5), LABEL, "LOW"),
+        ui.bar((7, 2), METER, R_IN),
+        ui.bar((7, 3), METER, R_HIGH),
+        ui.bar((7, 4), METER, R_MID),
+        ui.bar((7, 5), METER, R_LOW),
+        ui.str((30, 2), LEVEL, R_IN),
+        ui.str((30, 3), LEVEL, R_HIGH),
+        ui.str((30, 4), LEVEL, R_MID),
+        ui.str((30, 5), LEVEL, R_LOW),
+        ui.str((35, 2), (5, 1), R_IN_CLIP),
+        ui.str((35, 3), (5, 1), MUTE_R_HIGH),
+        ui.str((35, 4), (5, 1), MUTE_R_MID),
+        ui.str((35, 5), (5, 1), MUTE_R_LOW),
+    ]))
 
-def listener(sock):
-    buffer = b''
-    def receive(sock: socket.socket):
-        nonlocal buffer
-        while True:
-            buffer += sock.recv(1024)
-            while b'\n' in buffer:
-                line, buffer = buffer.split(b'\n', 1)
-                yield line.decode(UTF8)
-    def parse(data):
-        # asyncget "\\Preset\InputMeters\SV\LeftInput" "0.0 dB"
-        try:
-            cmd, path, value = [x.strip() for x in data.split('"') if x.strip()]
-            node = Node.parse(path, value)
-        except (ValueError, IndexError):
-            log.info(f'ignored message: "{data.strip()}"')
-    def send_q(sock):
-        if not Q: return
-        tx_cmd = Q.pop(0)
-        tx_cmd[0](sock, tx_cmd[1])
-    try:
-        for data in receive(sock):
-            parse(data)
-            send_q(sock)
-    except Exception as e:
-        log.exception(e)
-    finally:
-        sock.close()
+    grid.append(ui.box((0, 13), (40, 9), [
+        ui.str((6, 0), (24, 2), SS, format=lambda n: f"┤Subharmonic Synth {n}├"),
+        ui.str((2, 1), LABEL, "%"),
+        ui.str((2, 2), LABEL, "LEVEL", color=ui.PINK),
+        ui.str((2, 3), LABEL, "UPP"),
+        ui.str((2, 4), LABEL, "LOW"),
+        ui.str((2, 5), LABEL, "24-36"),
+        ui.str((2, 6), LABEL, "36-56"),
+        ui.bar((7, 1), METER, SH),
+        ui.bar((7, 2), METER, SS_LEVEL, color=ui.PINK),
+        ui.bar((7, 3), METER, SS_UPPER),
+        ui.bar((7, 4), METER, SS_LOWER),
+        ui.bar((7, 5), METER, SS_24),
+        ui.bar((7, 6), METER, SS_36),
+        ui.str((30, 1), LEVEL, SH),
+        ui.str((30, 2), LEVEL, SS_LEVEL),
+        ui.str((30, 3), LEVEL, SS_UPPER),
+        ui.str((30, 4), LEVEL, SS_LOWER),
+        ui.str((30, 5), LEVEL, SS_24),
+        ui.str((30, 6), LEVEL, SS_36),
+    ]))
 
-def setup_tcp():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((TARGET_IP, PORT)) # TODO timeout
-    if sock: log.info(f"Connected to {TARGET_IP}:{PORT}")
-    thread = threading.Thread(target=listener, args=(sock,))
-    thread.daemon = True
-    thread.start()
-    return sock, thread
+    ctx = 0
+    while True:
+        ctx += 1
+        key = stdscr.getch()
+        if key == curses.KEY_MOUSE:
+            _, x, y, _, _ = curses.getmouse()
+            stdscr.addstr(y, x, '▒')
+            grid.click(y, x)
+        if key == ord('q'):
+            break
+        elif key == ord('r'):
+            state.sub()
+        if ctx == EPOCH:
+            ctx = 0
+            state.loop()
+        grid.display(stdscr)
 
-class NodeDisplay(textual.widgets.Static):
-    def __init__(self, node: Node):
-        super().__init__()
-        self.node = node
-        self.node.add_callback(self.update)
-    def update(self, node: Node):
-        super().update(str(node))
-class Meter(textual.widgets.ProgressBar):
-    def __init__(self, node: Node):
-        self.node = node
-        self.node.add_callback(self._update)
-        super().__init__()
-    def _update(self, node: Node):
-        value = float(str(node)[:-2])
-        perc = round((value + 120) / 120 * 100)
-        self.update(total=100, progress=perc)
-class Channel(textual.widgets.Static):
-    def __init__(self, title: str, node: Node):
-        super().__init__()
-        self.title = title
-        self.node = node
-    def compose(self) -> textual.app.ComposeResult:
-        yield textual.widgets.Static(self.title)
-        self.number_display = NodeDisplay(self.node)
-        self.meter_display = Meter(self.node)
-        yield self.number_display
-        yield self.meter_display
-
-class App(textual.app.App):
-    CSS = """
-Screen {
-    layout: grid;
-    grid-size: 4;
-    grid-columns: 1fr;
-    width: 80;
-    height: 80;
-}
-Vertical {
-    height: 30;
-}
-Channel {
-    height: 3;
-}
-    """
-    def run(self):
-        super().run()
-    def on_mount(self):
-        self.sock, self.listener = setup_tcp()
-    def compose(self) -> textual.app.ComposeResult:
-        yield textual.widgets.Header()
-        yield textual.widgets.Footer()
-        with textual.containers.Vertical():
-            yield Channel("Left Input", N['Preset']['InputMeters']['SV']['LeftInput'])
-            yield Channel("Left High Output", N['Preset']['OutputMeters']['SV']['HighLeftOutput'])
-            yield Channel("Left Mid Output", N['Preset']['OutputMeters']['SV']['MidLeftOutput'])
-            yield Channel("Left Low Output", N['Preset']['OutputMeters']['SV']['LowLeftOutput'])
-        
-        with textual.containers.Vertical():
-            yield Channel("Right Input", N['Preset']['InputMeters']['SV']['RightInput'])
-            yield Channel("Right High Output", N['Preset']['OutputMeters']['SV']['HighRightOutput'])
-            yield Channel("Right Mid Output", N['Preset']['OutputMeters']['SV']['MidRightOutput'])
-            yield Channel("Right Low Output", N['Preset']['OutputMeters']['SV']['LowRightOutput'])
-        
-        self.log_view = textual.widgets.Static("Log")
-        yield self.log_view
-
-if __name__ == "__main__":
-    App().run()
+curses.wrapper(main)
