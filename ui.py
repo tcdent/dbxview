@@ -39,15 +39,23 @@ str_ = str # :/
 class String(str): pass
 
 class Module:
+    x = property(lambda self: self._x + self._offset[1])
+    y = property(lambda self: self._y + self._offset[0])
     color = property(lambda self: self._color)
     def __init__(self, coords, dims, color=None):
-        self.x, self.y = coords
+        self.set_coords(coords)
         self.width, self.height = dims
+        self.set_offset()
         self._color = color or curses.A_NORMAL
         self.value = "" # :/
         self.grid = curses.newwin(self.height, self.width, self.y, self.x)
+    def set_coords(self, coords):
+        self._x, self._y = coords
+    def set_offset(self, offset=(0, 0)):
+        self._offset = offset
     def render(self, grid: curses.window, offset=(0, 0)):
-        grid.addstr(self.y + offset[0], self.x + offset[1], self.value, self.color)
+        self.set_offset(offset)
+        grid.addstr(self.y, self.x, self.value, self.color)
         grid.refresh()
 
 class NodeModule(Module):
@@ -75,18 +83,19 @@ class box(Module):
     def append(self, module):
         self.modules.append(module)
     def render(self, grid: curses.window, offset=(0, 0)):
+        self.set_offset(offset)
         w, h = self.width - 1, self.height - 1
         offset = (self.y, self.x)
         for x in range(1, w):
-            grid.addch(0 + offset[0], x + offset[1], self.H)
-            grid.addch(h + offset[0], x + offset[1], self.H)
+            grid.addch(self.y, self.x + x, self.H)
+            grid.addch(self.y + h, self.x + x, self.H)
         for y in range(1, h):
-            grid.addch(y + offset[0], 0 + offset[1], self.V)
-            grid.addch(y + offset[0], w + offset[1], self.V)
-        grid.addch(0 + offset[0], 0 + offset[1], self.TL)
-        grid.addch(h + offset[0], 0 + offset[1], self.BL)
-        grid.addch(0 + offset[0], w + offset[1], self.TR)
-        grid.addch(h + offset[0], w + offset[1], self.BR)
+            grid.addch(self.y + y, self.x, self.V)
+            grid.addch(self.y + y, self.x + w, self.V)
+        grid.addch(self.y, self.x, self.TL)
+        grid.addch(self.y + h, self.x, self.BL)
+        grid.addch(self.y, self.x + w, self.TR)
+        grid.addch(self.y + h, self.x + w, self.BR)
         for module in self.modules:
             module.render(grid, offset)
         grid.refresh()
@@ -94,9 +103,10 @@ class box(Module):
 class str(NodeModule): pass
 class title(str):
     def render(self, grid: curses.window, offset=(0, 0)):
+        self.set_offset(offset)
         line = "═" * len(self.value)
-        grid.addstr(self.y + offset[0], self.x + offset[1], self.value.center(self.width), self.color)
-        grid.addstr(1 + self.y + offset[0], self.x + offset[1], line.center(self.width), self.color)
+        grid.addstr(self.y, self.x, self.value.center(self.width), self.color)
+        grid.addstr(self.y + 1, self.x, line.center(self.width), self.color)
         grid.refresh()
 class bar(NodeModule):
     FULL = "█"
@@ -109,21 +119,18 @@ class bar(NodeModule):
             return YELLOW
         return RED
     def render(self, grid: curses.window, offset=(0, 0)):
+        self.set_offset(offset)
         if not isinstance(self.value, (int, float)):
             self.value = 0.0
-        offset = (self.y + offset[0], self.x + offset[1])
         bar_width = min(math.floor(self.value / 100 * self.width), self.width)
         for i in range(self.height):
             for j in range(max(bar_width, 0)):
-                grid.addch(i + offset[0], j + offset[1], self.FULL, self.color)
+                grid.addch(i + self.y, j + self.x, self.FULL, self.color)
             if self.value % 100 >= 50:
-                grid.addch(i + offset[0], bar_width + offset[1], self.HALF, self.color)
+                grid.addch(i + self.y, bar_width + self.x, self.HALF, self.color)
                 bar_width += 1
             for j in range(bar_width, self.width):
-                try:
-                    grid.addch(i + offset[0], j + offset[1], "-", self.color)
-                except curses.error:
-                    pass
+                grid.addch(i + self.y, j + self.x, "-", self.color)
 class bool(NodeModule):
     OFF = "○"
     ON = "●"
@@ -135,10 +142,11 @@ class bool(NodeModule):
             return self.ON_COLOR
         return self.OFF_COLOR
     def render(self, grid: curses.window, offset=(0, 0)):
+        self.set_offset(offset)
         if self.value == True:
-            grid.addstr(offset[0] + self.y, offset[1] + self.x, self.ON, self.ON_COLOR)
+            grid.addstr(self.y, self.x, self.ON, self.ON_COLOR)
         else:
-            grid.addstr(offset[0] + self.y, offset[1] + self.x, self.OFF, self.OFF_COLOR)
+            grid.addstr(self.y, self.x, self.OFF, self.OFF_COLOR)
 class mute(bool):
     OFF = "○"
     ON = "●"
