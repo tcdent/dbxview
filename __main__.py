@@ -7,14 +7,14 @@ EPOCH = 3
 def main(stdscr):
     LABEL = (4, 1)
     METER = (22, 1)
-    LEVEL = (4, 1)
+    LEVEL = (5, 1)
 
     grid = ui.app(80, 30)
     grid.init(stdscr)
     sock, listener = net.setup_tcp()
     state.sub()
 
-    grid.append(ui.title((0, 0), (80, 3), NAME))
+    grid.append(ui.title((0, 0), (80, 2), "dbxview"))
     grid.append(ui.str((0, 3), (80, 1), DEV))
     grid.append(ui.box((0, 6), (40, 7), [
         ui.str((6, 0), (6, 2), "┤Left├"),
