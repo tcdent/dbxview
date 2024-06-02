@@ -1,4 +1,4 @@
-from . import N, Q, log
+from . import N, Q, QQ, Node, log
 
 """
 unsub \"\\\\Preset\\SignalGenerator\\SV\\Signal Generator\\\"\n"
@@ -80,49 +80,9 @@ def pc(value: str) -> float:
     return float(value[:-1])
 def onoff(value: str) -> bool:
     return value == 'On'
-
-def sub():
-    Q.append(('sub', DEV.path))
-    Q.append(('sub', PRE.path))
-    Q.append(('sub', NAME.path))
-    Q.append(('sub', CURR_PRE.path))
-    Q.append(('sub', L_IN.path))
-    Q.append(('sub', R_IN.path))
-    Q.append(('asyncget', L_IN_CLIP.path))
-    Q.append(('asyncget', R_IN_CLIP.path))
-
-    Q.append(('sub', SH.path))
-    Q.append(('sub', SH_.path))
-    Q.append(('sub', SS.path))
-    Q.append(('sub', SS_.path))
-    Q.append(('sub', SS_24.path))
-    Q.append(('sub', SS_24_.path))
-    Q.append(('sub', SS_36.path))
-    Q.append(('sub', SS_36_.path))
-    Q.append(('sub', SS_LEVEL.path))
-    Q.append(('sub', SS_UPPER.path))
-    Q.append(('sub', SS_LOWER.path))
-    
-
-    Q.append(('sub', L_HIGH.path))
-    Q.append(('sub', MUTE_L_HIGH.path))
-    Q.append(('sub', R_HIGH.path))
-    Q.append(('sub', MUTE_R_HIGH.path))
-    Q.append(('asyncget', LMT_HIGH.path))
-    Q.append(('sub', L_MID.path))
-    Q.append(('sub', MUTE_L_MID.path))
-    Q.append(('sub', R_MID.path))
-    Q.append(('sub', MUTE_R_MID.path))
-    Q.append(('asyncget', LMT_MID.path))
-    Q.append(('sub', L_LOW.path))
-    Q.append(('sub', MUTE_L_LOW.path))
-    Q.append(('sub', R_LOW.path))
-    Q.append(('sub', MUTE_R_LOW.path))
-    Q.append(('asyncget', LMT_LOW.path))
-
-def loop():
-    #Q.append(('asyncget', SS.path))
-    #Q.append(('asyncget', SS_.path))
-    Q.append(('asyncget', SS_LEVEL.path))
-    Q.append(('asyncget', SS_UPPER.path))
-    Q.append(('asyncget', SS_LOWER.path))
+def sub(nodes: list[Node]):
+    Q.extend([('sub', node.path) for node in nodes])
+def unsub(nodes: list[Node]):
+    Q.extend([('unsub', node.path) for node in nodes])
+def loop(nodes: list):
+    Q.extend([('asyncget', node.path) for node in nodes])

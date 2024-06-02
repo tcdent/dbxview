@@ -1,6 +1,6 @@
 import socket
 import threading
-from . import log, UTF8, TARGET_IP, PORT, Q, Node
+from . import log, UTF8, TARGET_IP, PORT, Q, QQ, Node
 
 class Listener:
     def __init__(self, sock):
@@ -24,8 +24,8 @@ class Listener:
         except (ValueError, IndexError):
             log.info(f'ignored message: "{data.strip()}"')
     def send_q(self):
-        if not Q: return
-        cmd(self.sock, *Q.pop(0))
+        if Q: cmd(self.sock, *Q.pop(0))
+        if QQ: [cmd(self.sock, *q) for q in QQ]
     def run(self):
         try:
             for data in self.receive():

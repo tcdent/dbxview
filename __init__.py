@@ -69,3 +69,4 @@ N = Node('\\') # localstore
 Q = [ # outgoing message queue
     ('raw', "connect administrator administrator"), 
 ]
+QQ = [] # persistent queue

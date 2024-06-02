@@ -57,6 +57,10 @@ class Module:
         self.set_offset(offset)
         grid.addstr(self.y, self.x, self.value, self.color)
         grid.refresh()
+    def destroy(self):
+        self.grid.clear()
+        self.grid.refresh()
+        del self.grid
 
 class NodeModule(Module):
     def __init__(self, coords, dims, node, color=None, format: callable=None):
@@ -152,22 +156,35 @@ class mute(bool):
     ON = "●"
     OFF_COLOR = GREEN
     ON_COLOR = RED
-
+class view:
+    def __init__(self, dims, modules=None):
+        self.width, self.height = dims
+        self.modules = modules or []
+        self.grid = curses.newwin(self.height, self.width, 0, 0)
+    def append(self, module):
+        self.modules.append(module)
+    def render(self):
+        for module in self.modules:
+            module.render(self.grid)
+        self.grid.refresh()
+    def init(self): pass
+    def destroy(self): pass
+            
 class app:
-    def __init__(self, height=30, width=80):
-        self.height = height
-        self.width = width
-        self.modules = []
+    def __init__(self, dims):
+        self.width, self.height = dims
+        self.views = []
     def init(self, stdscr):
         curses.curs_set(0)
         stdscr.nodelay(True)
         stdscr.timeout(100)
         curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
     def append(self, module):
-        self.modules.append(module)
-    def display(self, stdscr):
-        stdscr.clear()
-        for module in self.modules:
-            module.render(stdscr, (0, 0))
+        self.views.append(module)
+    def update(self, modules):
+        self.views.update(modules)
+    def render(self):
+        for view in self.views:
+            view.render()
     def click(self, y, x):
         pass
