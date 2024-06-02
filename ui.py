@@ -2,6 +2,8 @@ import math
 import curses
 from . import log, Node
 
+str_ = str # :/
+
 class rgb:
     def __init__(self, r, g, b):
         self.r = r
@@ -34,9 +36,6 @@ YELLOW = curses.color_pair(4)
 RED = curses.color_pair(5)
 GREEN_REV = curses.color_pair(6)
 RED_REV = curses.color_pair(7)
-
-str_ = str # :/
-class String(str): pass
 
 class Module:
     x = property(lambda self: self._x + self._offset[1])
@@ -104,7 +103,8 @@ class box(Module):
             module.render(grid, offset)
         grid.refresh()
         return self.grid
-class str(NodeModule): pass
+class str(NodeModule):
+    pass
 class title(str):
     def render(self, grid: curses.window, offset=(0, 0)):
         self.set_offset(offset)
@@ -169,7 +169,6 @@ class view:
         self.grid.refresh()
     def init(self): pass
     def destroy(self): pass
-            
 class app:
     def __init__(self, dims):
         self.width, self.height = dims
