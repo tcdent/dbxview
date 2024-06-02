@@ -14,9 +14,13 @@ class Listener:
                 yield line.decode(UTF8)
     def parse(self, data):
         # asyncget "\\Preset\InputMeters\SV\LeftInput" "0.0 dB"
+        if not data: return
         try:
             cmd, path, value = [x.strip() for x in data.split('"') if x.strip()]
-            node = Node.parse(path, value)
+            try:
+                node = Node.parse(path, value)
+            except Exception as e:
+                log.exception(e)
         except (ValueError, IndexError):
             log.info(f'ignored message: "{data.strip()}"')
     def send_q(self):

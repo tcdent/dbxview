@@ -14,9 +14,9 @@ APP_PATH = os.path.dirname(os.path.abspath(__file__))
 PORT = 19272
 TARGET_IP = '192.168.1.234'
 
-log = logging.getLogger('dbx')
+log = logging.getLogger('dbxview')
 log.setLevel(logging.DEBUG)
-log.addHandler(logging.FileHandler(os.path.join(APP_PATH, 'dbx.log')))
+log.addHandler(logging.FileHandler(os.path.join(APP_PATH, 'dbxview.log')))
 
 class Node:
     def __init__(self, name):
@@ -41,7 +41,7 @@ class Node:
     def __repr__(self):
         return f"Node({self.path}, {self.data}, {self.children})"
     def __str__(self):
-        return str(self.data)
+        return str(self.data) if self.data else str(0)
     def add_callback(self, callback):
         self.callbacks.append(callback)
     def set_data(self, data):
@@ -66,8 +66,6 @@ class Node:
         return node
 
 N = Node('\\') # localstore
-
-Q = [
-    ('raw', "connect administrator administrator"), # This sends an extra space
+Q = [ # outgoing message queue
+    ('raw', "connect administrator administrator"), 
 ]
-

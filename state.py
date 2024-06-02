@@ -1,4 +1,4 @@
-from . import N, Q
+from . import N, Q, log
 
 """
 unsub \"\\\\Preset\\SignalGenerator\\SV\\Signal Generator\\\"\n"
@@ -66,6 +66,20 @@ SS_36_ = N['Preset']['SubharmonicSynth']['SV']['Synthesis Level 36-56Hz']['%']
 SS_LEVEL = N['Preset']['SubharmonicSynth']['SV']['SubSynthLevel']
 SS_UPPER = N['Preset']['SubharmonicSynth']['SV']['UpperBandLevel']
 SS_LOWER = N['Preset']['SubharmonicSynth']['SV']['LowerBandLevel']
+
+def db(value: str) -> float:
+    try:
+        return float(value[:-2])
+    except ValueError:
+        return 0.0
+def db_str(value: float) -> str:
+    return str(round(db(value)))
+def db_pc(value: str) -> float:
+    return (db(value) + 120) / 120 * 100
+def pc(value: str) -> float:
+    return float(value[:-1])
+def onoff(value: str) -> bool:
+    return value == 'On'
 
 def sub():
     Q.append(('sub', DEV.path))
