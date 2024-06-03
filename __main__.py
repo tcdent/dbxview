@@ -4,11 +4,11 @@ from .state import *
 
 class meters(ui.view):
     subs = (
-        L_IN, R_IN, L_IN_CLIP, R_IN_CLIP,
+        L_IN_CLIP, R_IN_CLIP,
         SH, SS, SS_24, SS_36, SS_LEVEL, SS_UPPER, SS_LOWER,
-        L_HIGH, MUTE_L_HIGH, R_HIGH, MUTE_R_HIGH, LMT_HIGH,
-        L_MID, MUTE_L_MID, R_MID, MUTE_R_MID, LMT_MID,
-        L_LOW, MUTE_L_LOW, R_LOW, MUTE_R_LOW, LMT_LOW,
+        L_HIGH, MUTE_L_HIGH, R_HIGH, MUTE_R_HIGH, #LMT_HIGH,
+        L_MID, MUTE_L_MID, R_MID, MUTE_R_MID, #LMT_MID,
+        L_LOW, MUTE_L_LOW, R_LOW, MUTE_R_LOW, #LMT_LOW,
     )
     loops = (
         SS_LEVEL, SS_UPPER, SS_LOWER, 
@@ -86,8 +86,8 @@ class meters(ui.view):
         ]
 class equalizers(ui.view):
     subs = (
-        PEQ_MID, PEQ_MID_MANUAL, PEQ_MID_AUTO, PEQ_MID_LO, PEQ_MID_HS, PEQ_MID_FL, PEQ_MID_BELL,
-        PEQ_MID_B1_TYPE, PEQ_MID_B1_Q, PEQ_MID_B1_GAIN, PEQ_MID_B1_FREQ, 
+        PEQ_MID, PEQ_MID_FL, 
+        PEQ_MID_B1_TYPE, PEQ_MID_B1_Q, PEQ_MID_B1_GAIN, PEQ_MID_B1_FREQ, PEQ_MID_B1_FREQ_
     )
     loops = ()
     def init(self):
@@ -118,13 +118,15 @@ class equalizers(ui.view):
                 ui.str((1, 38), (1, 6), "Band 7"),
                 ui.str((1, 44), (1, 6), "Band 8"),
                 ui.str((2, 2), (1, 6), "Freq"),
-                ui.str((3, 2), (1, 6), "Gain"),
-                ui.str((4, 2), (1, 6), "Q"),
-                ui.str((5, 2), (1, 6), "Type"),
-                ui.str((2, 8), (1, 6), PEQ_MID_B1_FREQ, format=state.db_str),
-                ui.str((3, 8), (1, 6), PEQ_MID_B1_GAIN, format=state.db_str),
-                ui.str((4, 8), (1, 6), PEQ_MID_B1_Q, format=state.db_str),
-                ui.str((5, 8), (1, 6), PEQ_MID_B1_TYPE),
+                ui.str((3, 2), (1, 6), "%"),
+                ui.str((4, 2), (1, 6), "Gain"),
+                ui.str((5, 2), (1, 6), "Q"),
+                ui.str((6, 2), (1, 6), "Type"),
+                ui.edit((2, 8), (1, 8), PEQ_MID_B1_FREQ),
+                ui.edit((3, 8), (1, 8), PEQ_MID_B1_FREQ_),
+                ui.edit((4, 8), (1, 8), PEQ_MID_B1_GAIN),
+                ui.edit((5, 8), (1, 8), PEQ_MID_B1_Q),
+                ui.edit((6, 8), (1, 8), PEQ_MID_B1_TYPE),
             ]),
         ]
 def main(stdscr):
@@ -141,7 +143,7 @@ def main(stdscr):
             ui.str((28, 0), (1, 65), f" [q]uit [m]eters [e]qualizers"),
         ]))
         grid.render()
-        state.sub((DEV, PRE, NAME, CURR_PRE,))
+        state.sub((L_IN, R_IN, DEV, PRE, NAME, CURR_PRE,))
     def load_view(view_cls):
         nonlocal view
         if view:
@@ -151,23 +153,24 @@ def main(stdscr):
         view = view_cls(dims)
         view.init()
         grid.append(view)
-        grid.render() # render static
         state.sub(view.subs)
     setup(stdscr)
     load_view(meters)
     while True:
-        key = stdscr.getch()
-        if key == curses.KEY_MOUSE:
+        ch = stdscr.getch()
+        if ch == curses.KEY_MOUSE:
             _, x, y, _, _ = curses.getmouse()
-            stdscr.addstr(y, x, '▒', curses.A_REVERSE)
+            #stdscr.addstr(y, x, '▒', curses.A_REVERSE)
             grid.click(y, x)
-        if key == ord('q'):
+        if ch == ord('q'):
             break
-        elif key == ord('m'):
+        elif ch == ord('m'):
             load_view(meters)
-        elif key == ord('e'):
+        elif ch == ord('e'):
             load_view(equalizers)
         if view:
+            if ch != -1:
+                view.input(ch)
             state.loop(view.loops)
 
 curses.wrapper(main)

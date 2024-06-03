@@ -3,12 +3,6 @@ import socket
 import threading
 import logging
 
-ANSI = dict([
-    (v, "\033[%sm" % i) for v, i in \
-        list(zip(['RST', 'BLD', 'DIM', 'ITL', 'UDL', 'SBL', 'FBL', 'REV'], range(8))) + \
-        list(zip(['BLK', 'RED', 'GRN', 'YEL', 'BLU', 'PNK', 'CYN', 'WHT'], range(30, 38)))
-])
-
 UTF8 = 'utf-8'
 APP_PATH = os.path.dirname(os.path.abspath(__file__))
 PORT = 19272
@@ -50,6 +44,9 @@ class Node:
         self.data = data
         for callback in self.callbacks:
             callback(self)
+    def save(self):
+        global Q
+        Q.append(('set', f'{self.path}" "{self.data}'))
     @property
     def path(self):
         node, path = self, [self.name]
@@ -71,4 +68,4 @@ N = Node('\\') # localstore
 Q = [ # outgoing message queue
     ('raw', "connect administrator administrator"), 
 ]
-QQ = [] # persistent queue
+

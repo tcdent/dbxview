@@ -1,4 +1,4 @@
-from . import N, Q, QQ, Node, log
+from . import N, Q, Node, log
 
 """
 unsub \"\\\\Preset\\SignalGenerator\\SV\\Signal Generator\\\"\n"
@@ -81,6 +81,7 @@ PEQ_MID_B1_TYPE = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Type']
 PEQ_MID_B1_Q = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Q']
 PEQ_MID_B1_GAIN = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Gain']
 PEQ_MID_B1_FREQ = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Frequency']
+PEQ_MID_B1_FREQ_ = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Frequency']['%']
 PEQ_MID_B2_TYPE = N['Preset']['Mid Outputs PEQ']['SV']['Band_2_Type']
 # TODO B2-B8
 

@@ -1,6 +1,7 @@
+import time
 import socket
 import threading
-from . import log, UTF8, TARGET_IP, PORT, Q, QQ, Node
+from . import log, UTF8, TARGET_IP, PORT, Q, Node
 
 class Listener:
     def __init__(self, sock):
@@ -25,7 +26,6 @@ class Listener:
             log.info(f'ignored message: "{data.strip()}"')
     def send_q(self):
         if Q: cmd(self.sock, *Q.pop(0))
-        if QQ: [cmd(self.sock, *q) for q in QQ]
     def run(self):
         try:
             for data in self.receive():
@@ -48,6 +48,8 @@ def send_message(sock: socket.socket, message: str):
     #log.debug(f"send_message: {message}")
     sock.sendall(message.encode(UTF8) + b'\n')
 def cmd(sock, method, message):
+    if not method == 'asyncget':
+        log.debug(f"cmd: {method} {message}")
     if method == 'raw': # :/
         return send_message(sock, message)
     return send_message(sock, f"{method} \"{message}\"")
