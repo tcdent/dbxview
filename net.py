@@ -18,10 +18,13 @@ class Listener:
         if not data: return
         try:
             cmd, path, value = [x.strip() for x in data.split('"') if x.strip()]
-            try:
-                node = Node.parse(path, value)
-            except Exception as e:
-                log.exception(e)
+            if cmd == 'set' or cmd == 'get' or cmd == 'subr' or cmd == 'setr':
+                try:
+                    node = Node.parse(path, value)
+                except Exception as e:
+                    log.exception(e)
+            else:
+                raise ValueError(f"unknown command: {cmd}")
         except (ValueError, IndexError):
             log.info(f'ignored message: "{data.strip()}"')
     def send_q(self):
@@ -49,7 +52,7 @@ def send_message(sock: socket.socket, message: str):
     sock.sendall(message.encode(UTF8) + b'\n')
 def cmd(sock, method, message):
     if not method == 'asyncget':
-        log.debug(f"cmd: {method} {message}")
+        log.debug(f"{method} \"{message}\"")
     if method == 'raw': # :/
         return send_message(sock, message)
     return send_message(sock, f"{method} \"{message}\"")

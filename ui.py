@@ -64,14 +64,16 @@ class Module:
         self.coords = coord(*coords)
         self.height, self.width = dims
         self._color = color or curses.A_NORMAL
+        self._grid = None
         self.value = "" # :/
     @property
     def grid(self):
-        if not hasattr(self, '_grid') or not self._grid:
+        if not self._grid: # TODO that +1 is a hack
             self._grid = curses.newwin(self.height+1, self.width, self.y, self.x)
         return self._grid
     def render(self):
-        self.grid.addstr(0, 0, self.value.ljust(self.width)[:self.width], self.color)
+        value = str_(self.value).ljust(self.width)[:self.width]
+        self.grid.addstr(0, 0, value, self.color)
         self.grid.refresh()
     def hit(self, y, x):
         return y >= self.y and y < self.y + self.height and x >= self.x and x < self.x + self.width
@@ -93,7 +95,7 @@ class NodeModule(Module):
             return f"{self.__class__.__name__}({self.node.name} {self.node.path}, {self.value})"
         return f"{self.__class__.__name__}({self.node})"
     def update(self, node):
-        self.value = str_(node)[:self.width]
+        self.value = str_(node)
         if self.format:
             self.value = self.format(self.value)
         self.render()
@@ -157,6 +159,7 @@ class edit(NodeModule):
     def __init__(self, coords, dims, node, color=None, format: callable=None):
         super().__init__(coords, dims, node, color, format)
         self.editing = False
+        self.original_value = self.value
     def click(self, y, x):
         if self.hit(y, x) and not self.editing:
             self.start_editing()
@@ -176,16 +179,16 @@ class edit(NodeModule):
         if not self.editing:
             return
         if key.is_alpha(ch) or key.is_numeric(ch) or ch == key.PERIOD or ch == key.PERCENT:
-            self.value += chr(ch)
+            self.value = str_(self.value) + chr(ch)
         if ch == key.BACK:
-            self.value = self.value[:-1]
+            self.value = str_(self.value)[:-1]
         if ch == key.ESC:
             self.stop_editing()
             self.value = self.original_value
         if ch == key.ENTER:
-            log.debug(f"enter: {self.value}")
             self.stop_editing()
             self.node.set_data(self.value)
+            self.update(self.node)
             self.node.save()
         self.render()
 class Contains:

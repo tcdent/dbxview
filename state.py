@@ -1,3 +1,4 @@
+import re
 from . import N, Q, Node, log
 
 """
@@ -85,20 +86,23 @@ PEQ_MID_B1_FREQ_ = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Frequency']['%']
 PEQ_MID_B2_TYPE = N['Preset']['Mid Outputs PEQ']['SV']['Band_2_Type']
 # TODO B2-B8
 
+# ie. -117.4dB
+RE_DB = re.compile(r'(-?\d+\.\d+)dB')
 def db(value: str) -> float:
-    try:
-        return float(value[:-2])
-    except ValueError:
-        return 0.0
-def db_str(value: float) -> str:
-    return str(round(db(value)))
+    match = RE_DB.match(value)
+    return float(match.group(1)) if match else 0.0
 def db_pc(value: str) -> float:
     return (db(value) + 120) / 120 * 100
 def pc(value: str) -> float:
     if value[-1] == '%':
         return float(value[:-1])
+HZ_RE = re.compile(r'(\d+\.\d+)Hz')
+def hz(value: str) -> float:
+    match = HZ_RE.match(value)
+    return float(match.group(1)) if match else 0.0
 def onoff(value: str) -> bool:
     return value == 'On'
+
 def sub(nodes: list[Node]):
     Q.extend([('sub', node.path) for node in nodes])
 def unsub(nodes: list[Node]):
