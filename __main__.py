@@ -6,9 +6,9 @@ class meters(ui.view):
     subs = (
         L_IN_CLIP, R_IN_CLIP,
         SH, SS, SS_24, SS_36, SS_LEVEL, SS_UPPER, SS_LOWER,
-        L_HIGH, MUTE_L_HIGH, R_HIGH, MUTE_R_HIGH, #LMT_HIGH,
-        L_MID, MUTE_L_MID, R_MID, MUTE_R_MID, #LMT_MID,
-        L_LOW, MUTE_L_LOW, R_LOW, MUTE_R_LOW, #LMT_LOW,
+        L_HIGH, MUTE_L_HIGH, R_HIGH, MUTE_R_HIGH, LMT_HIGH,
+        L_MID, MUTE_L_MID, R_MID, MUTE_R_MID, LMT_MID,
+        L_LOW, MUTE_L_LOW, R_LOW, MUTE_R_LOW, LMT_LOW,
     )
     loops = (
         SS_LEVEL, SS_UPPER, SS_LOWER, 
@@ -93,13 +93,6 @@ class equalizers(ui.view):
         tuple(PEQ_LOW_BAND[i][key] for i in range(1, 9) for key in ('type', 'q', 'gain', 'freq'))
     loops = ()
     def init(self):
-        # band | 1 | 2 | 3 | 4 | ... | 8
-        # freq |   |   |   |   | ... |
-        # gain |   |   |   |   | ... |
-        # q    |   |   |   |   | ... |
-        # type |   |   |   |   | ... |
-        # bands horiozntally
-        log.debug(PEQ_MID_BAND)
         COL_W = 8
         LABEL = (1, 4)
         BAND = (1, 6)
@@ -174,7 +167,6 @@ def main(stdscr):
         ch = stdscr.getch()
         if ch == curses.KEY_MOUSE:
             _, x, y, _, _ = curses.getmouse()
-            #stdscr.addstr(y, x, '▒', curses.A_REVERSE)
             grid.click(y, x)
         if ch == ord('q'):
             break
