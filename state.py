@@ -69,6 +69,23 @@ SS_LEVEL = N['Preset']['SubharmonicSynth']['SV']['SubSynthLevel']
 SS_UPPER = N['Preset']['SubharmonicSynth']['SV']['UpperBandLevel']
 SS_LOWER = N['Preset']['SubharmonicSynth']['SV']['LowerBandLevel']
 
+# High Parametic EQ
+PEQ_HIGH = N['Preset']['High Outputs PEQ']['SV']['ParametricEQ']
+PEQ_HIGH_MANUAL = N['Preset']['High Outputs PEQ']['SV']['Manual']
+PEQ_HIGH_AUTO = N['Preset']['High Outputs PEQ']['SV']['AutoEQ']
+PEQ_HIGH_LO = N['Preset']['High Outputs PEQ']['SV']['Low Shelf']
+PEQ_HIGH_HS = N['Preset']['High Outputs PEQ']['SV']['High Shelf']
+PEQ_HIGH_FL = N['Preset']['High Outputs PEQ']['SV']['Flatten']
+PEQ_HIGH_BELL = N['Preset']['High Outputs PEQ']['SV']['Bell']
+PEQ_HIGH_BAND = [None] * 9
+for i in range(1, 9):
+    PEQ_HIGH_BAND[i] ={
+        'type': N['Preset']['High Outputs PEQ']['SV'][f'Band_{i}_Type'],
+        'q': N['Preset']['High Outputs PEQ']['SV'][f'Band_{i}_Q'],
+        'gain': N['Preset']['High Outputs PEQ']['SV'][f'Band_{i}_Gain'],
+        'freq': N['Preset']['High Outputs PEQ']['SV'][f'Band_{i}_Frequency'],
+    }
+
 # Mid Parametic EQ
 PEQ_MID = N['Preset']['Mid Outputs PEQ']['SV']['ParametricEQ']
 PEQ_MID_MANUAL = N['Preset']['Mid Outputs PEQ']['SV']['Manual']
@@ -77,19 +94,39 @@ PEQ_MID_LO = N['Preset']['Mid Outputs PEQ']['SV']['Low Shelf']
 PEQ_MID_HS = N['Preset']['Mid Outputs PEQ']['SV']['High Shelf']
 PEQ_MID_FL = N['Preset']['Mid Outputs PEQ']['SV']['Flatten']
 PEQ_MID_BELL = N['Preset']['Mid Outputs PEQ']['SV']['Bell']
-PEQ_MID_B1_TYPE = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Type']
-PEQ_MID_B1_Q = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Q']
-PEQ_MID_B1_GAIN = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Gain']
-PEQ_MID_B1_FREQ = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Frequency']
-PEQ_MID_B1_FREQ_ = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Frequency']['%']
-PEQ_MID_B2_TYPE = N['Preset']['Mid Outputs PEQ']['SV']['Band_2_Type']
-# TODO B2-B8
+PEQ_MID_BAND = [None] * 9
+for i in range(1, 9):
+    PEQ_MID_BAND[i] ={
+        'type': N['Preset']['Mid Outputs PEQ']['SV'][f'Band_{i}_Type'],
+        'q': N['Preset']['Mid Outputs PEQ']['SV'][f'Band_{i}_Q'],
+        'gain': N['Preset']['Mid Outputs PEQ']['SV'][f'Band_{i}_Gain'],
+        'freq': N['Preset']['Mid Outputs PEQ']['SV'][f'Band_{i}_Frequency'],
+    }
+
+# Low Parametic EQ
+PEQ_LOW = N['Preset']['Low Outputs PEQ']['SV']['ParametricEQ']
+PEQ_LOW_MANUAL = N['Preset']['Low Outputs PEQ']['SV']['Manual']
+PEQ_LOW_AUTO = N['Preset']['Low Outputs PEQ']['SV']['AutoEQ']
+PEQ_LOW_LO = N['Preset']['Low Outputs PEQ']['SV']['Low Shelf']
+PEQ_LOW_HS = N['Preset']['Low Outputs PEQ']['SV']['High Shelf']
+PEQ_LOW_FL = N['Preset']['Low Outputs PEQ']['SV']['Flatten']
+PEQ_LOW_BELL = N['Preset']['Low Outputs PEQ']['SV']['Bell']
+PEQ_LOW_BAND = [None] * 9
+for i in range(1, 9):
+    PEQ_LOW_BAND[i] ={
+        'type': N['Preset']['Low Outputs PEQ']['SV'][f'Band_{i}_Type'],
+        'q': N['Preset']['Low Outputs PEQ']['SV'][f'Band_{i}_Q'],
+        'gain': N['Preset']['Low Outputs PEQ']['SV'][f'Band_{i}_Gain'],
+        'freq': N['Preset']['Low Outputs PEQ']['SV'][f'Band_{i}_Frequency'],
+    }
 
 # ie. -117.4dB
 RE_DB = re.compile(r'(-?\d+\.\d+)dB')
 def db(value: str) -> float:
     match = RE_DB.match(value)
     return float(match.group(1)) if match else 0.0
+def db_int(value: str) -> int:
+    return round(db(value))
 def db_pc(value: str) -> float:
     return (db(value) + 120) / 120 * 100
 def pc(value: str) -> float:
