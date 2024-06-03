@@ -4,6 +4,12 @@ from . import log, Node
 
 str_ = str # :/
 
+class coord:
+    curses = property(lambda self: (self.y, self.x))
+    def __init__(self, *coords):
+        self.y, self.x = coords
+    def __splat__(self):
+        return self.y, self.x
 class rgb:
     def __init__(self, r, g, b):
         self.r = r
@@ -38,29 +44,26 @@ GREEN_REV = curses.color_pair(6)
 RED_REV = curses.color_pair(7)
 
 class Module:
-    x = property(lambda self: self._x + self._offset[1])
-    y = property(lambda self: self._y + self._offset[0])
+    y = property(lambda self: self.coords.y)
+    x = property(lambda self: self.coords.x)
     color = property(lambda self: self._color)
     def __init__(self, coords, dims, color=None):
-        self.set_coords(coords)
-        self.width, self.height = dims
-        self.set_offset()
+        self.coords = coord(*coords)
+        self.height, self.width = dims
         self._color = color or curses.A_NORMAL
         self.value = "" # :/
-        self.grid = curses.newwin(self.height, self.width, self.y, self.x)
-    def set_coords(self, coords):
-        self._x, self._y = coords
-    def set_offset(self, offset=(0, 0)):
-        self._offset = offset
-    def render(self, grid: curses.window, offset=(0, 0)):
-        self.set_offset(offset)
-        grid.addstr(self.y, self.x, self.value, self.color)
-        grid.refresh()
-    def destroy(self):
-        self.grid.clear()
+    @property
+    def grid(self):
+        if not hasattr(self, '_grid') or not self._grid:
+            self._grid = curses.newwin(self.height+1, self.width, self.y, self.x)
+        return self._grid
+    def render(self):
+        self.grid.addstr(0, 0, self.value.ljust(self.width)[:self.width], self.color)
         self.grid.refresh()
-        del self.grid
-
+    def destroy(self):
+        self.grid.erase()
+        self.grid.refresh()
+        #del self.grid
 class NodeModule(Module):
     def __init__(self, coords, dims, node, color=None, format: callable=None):
         super().__init__(coords, dims, color)
@@ -77,41 +80,49 @@ class NodeModule(Module):
         self.value = str_(node)[:self.width]
         if self.format:
             self.value = self.format(self.value)
-
+        self.render()
+    def destroy(self):
+        if isinstance(self.node, Node):
+            self.node.remove_callback(self.update)
+        super().destroy()
 class box(Module):
     H, V, TL, TR, BL, BR =  "─", "│", "┌", "┐", "└", "┘"
     def __init__(self, coords, dims, modules=None, color=None):
         super().__init__(coords, dims, color)
-        self.modules = modules or []
+        self.modules = []
+        for module in modules or []:
+            self.append(module)
     def append(self, module):
+        module.coords = coord(self.y + module.y, self.x + module.x)
         self.modules.append(module)
-    def render(self, grid: curses.window, offset=(0, 0)):
-        self.set_offset(offset)
+    def render(self):
         w, h = self.width - 1, self.height - 1
-        offset = (self.y, self.x)
         for x in range(1, w):
-            grid.addch(self.y, self.x + x, self.H)
-            grid.addch(self.y + h, self.x + x, self.H)
+            self.grid.addch(0, x, self.H)
+            self.grid.addch(h, x, self.H)
         for y in range(1, h):
-            grid.addch(self.y + y, self.x, self.V)
-            grid.addch(self.y + y, self.x + w, self.V)
-        grid.addch(self.y, self.x, self.TL)
-        grid.addch(self.y + h, self.x, self.BL)
-        grid.addch(self.y, self.x + w, self.TR)
-        grid.addch(self.y + h, self.x + w, self.BR)
+            self.grid.addch(y, 0, self.V)
+            self.grid.addch(y, w, self.V)
+        self.grid.addch(0, 0, self.TL)
+        self.grid.addch(h, 0, self.BL)
+        self.grid.addch(0, w, self.TR)
+        self.grid.addch(h, w, self.BR)
+        self.grid.refresh()
         for module in self.modules:
-            module.render(grid, offset)
-        grid.refresh()
-        return self.grid
+            module.render()
+    def destroy(self):
+        for module in self.modules:
+            module.destroy()
+        self.grid.erase()
+        self.grid.refresh()
 class str(NodeModule):
     pass
 class title(str):
-    def render(self, grid: curses.window, offset=(0, 0)):
-        self.set_offset(offset)
+    def render(self):
         line = "═" * len(self.value)
-        grid.addstr(self.y, self.x, self.value.center(self.width), self.color)
-        grid.addstr(self.y + 1, self.x, line.center(self.width), self.color)
-        grid.refresh()
+        self.grid.addstr(0, 0, self.value.center(self.width), self.color)
+        self.grid.addstr(1, 0, line.center(self.width), self.color)
+        self.grid.refresh()
 class bar(NodeModule):
     FULL = "█"
     HALF = "▌"
@@ -122,19 +133,18 @@ class bar(NodeModule):
         if self.value < 90:
             return YELLOW
         return RED
-    def render(self, grid: curses.window, offset=(0, 0)):
-        self.set_offset(offset)
+    def render(self):
         if not isinstance(self.value, (int, float)):
             self.value = 0.0
         bar_width = min(math.floor(self.value / 100 * self.width), self.width)
-        for i in range(self.height):
-            for j in range(max(bar_width, 0)):
-                grid.addch(i + self.y, j + self.x, self.FULL, self.color)
-            if self.value % 100 >= 50:
-                grid.addch(i + self.y, bar_width + self.x, self.HALF, self.color)
-                bar_width += 1
-            for j in range(bar_width, self.width):
-                grid.addch(i + self.y, j + self.x, "-", self.color)
+        for x in range(max(bar_width, 0)):
+            self.grid.addch(0, x, self.FULL, self.color)
+        if self.value % 100 >= 50:
+            bar_width += 2
+            self.grid.addch(0, bar_width, self.HALF, self.color)
+        for x in range(bar_width, self.width):
+            self.grid.addch(0, x, "-", self.color)
+        self.grid.refresh()
 class bool(NodeModule):
     OFF = "○"
     ON = "●"
@@ -145,12 +155,12 @@ class bool(NodeModule):
         if self.value == True:
             return self.ON_COLOR
         return self.OFF_COLOR
-    def render(self, grid: curses.window, offset=(0, 0)):
-        self.set_offset(offset)
+    def render(self):
         if self.value == True:
-            grid.addstr(self.y, self.x, self.ON, self.ON_COLOR)
+            self.grid.addstr(0, 0, self.ON, self.ON_COLOR)
         else:
-            grid.addstr(self.y, self.x, self.OFF, self.OFF_COLOR)
+            self.grid.addstr(0, 0, self.OFF, self.OFF_COLOR)
+        self.grid.refresh()
 class mute(bool):
     OFF = "○"
     ON = "●"
@@ -159,16 +169,22 @@ class mute(bool):
 class view:
     def __init__(self, dims, modules=None):
         self.width, self.height = dims
-        self.modules = modules or []
+        self.modules = []
         self.grid = curses.newwin(self.height, self.width, 0, 0)
-    def append(self, module):
+        for module in modules or []:
+            self.append(module)
+    def append(self, module: Module):
+        module.render()
         self.modules.append(module)
     def render(self):
         for module in self.modules:
-            module.render(self.grid)
-        self.grid.refresh()
+            module.render()
     def init(self): pass
-    def destroy(self): pass
+    def destroy(self):
+        for module in self.modules:
+            module.destroy()
+        self.grid.erase()
+        self.grid.refresh()
 class app:
     def __init__(self, dims):
         self.width, self.height = dims
@@ -178,12 +194,17 @@ class app:
         stdscr.nodelay(True)
         stdscr.timeout(100)
         curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
-    def append(self, module):
+    def append(self, module: view):
+        module.render()
         self.views.append(module)
-    def update(self, modules):
-        self.views.update(modules)
+    def update(self, modules: list[view]):
+        for module in modules:
+            self.append(module)
     def render(self):
-        for view in self.views:
-            view.render()
+        for module in self.views:
+            module.render()
+    def destroy(self, module: view):
+        self.views.remove(module)
+        module.destroy()
     def click(self, y, x):
         pass

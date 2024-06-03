@@ -29,6 +29,7 @@ set "\\Preset\SubharmonicSynth\SV\SubharmonicSynth" "Off"
 set "\\Preset\SubharmonicSynth\SV\SubharmonicSynth" "On"
 """
 
+
 DEV = N['Node']['SV']['DeviceName']
 PRE = N['Storage']['Presets']['SV']['CurrentPreset']
 NAME = N['Storage']['Presets']['SV']['Name_13'] # TODO
@@ -55,6 +56,7 @@ R_LOW = N['Preset']['OutputMeters']['SV']['LowRightOutput']
 MUTE_R_LOW = N['Preset']['OutputGains']['SV']['LowRightOutputMute']
 LMT_LOW = N['Preset']['LowOutputsLimiter']['SV']['ThresholdMeter']
 
+# Subharminic Synth
 SH = N['Preset']['SubharmonicSynth']['SV']['Subharmonics']
 SH_ = N['Preset']['SubharmonicSynth']['SV']['Subharmonics']['%']
 SS = N['Preset']['SubharmonicSynth']['SV']['SubharmonicSynth']
@@ -67,6 +69,21 @@ SS_LEVEL = N['Preset']['SubharmonicSynth']['SV']['SubSynthLevel']
 SS_UPPER = N['Preset']['SubharmonicSynth']['SV']['UpperBandLevel']
 SS_LOWER = N['Preset']['SubharmonicSynth']['SV']['LowerBandLevel']
 
+# Mid Parametic EQ
+PEQ_MID = N['Preset']['Mid Outputs PEQ']['SV']['ParametricEQ']
+PEQ_MID_MANUAL = N['Preset']['Mid Outputs PEQ']['SV']['Manual']
+PEQ_MID_AUTO = N['Preset']['Mid Outputs PEQ']['SV']['AutoEQ']
+PEQ_MID_LO = N['Preset']['Mid Outputs PEQ']['SV']['Low Shelf']
+PEQ_MID_HS = N['Preset']['Mid Outputs PEQ']['SV']['High Shelf']
+PEQ_MID_FL = N['Preset']['Mid Outputs PEQ']['SV']['Flatten']
+PEQ_MID_BELL = N['Preset']['Mid Outputs PEQ']['SV']['Bell']
+PEQ_MID_B1_TYPE = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Type']
+PEQ_MID_B1_Q = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Q']
+PEQ_MID_B1_GAIN = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Gain']
+PEQ_MID_B1_FREQ = N['Preset']['Mid Outputs PEQ']['SV']['Band_1_Frequency']
+PEQ_MID_B2_TYPE = N['Preset']['Mid Outputs PEQ']['SV']['Band_2_Type']
+# TODO B2-B8
+
 def db(value: str) -> float:
     try:
         return float(value[:-2])
@@ -77,7 +94,8 @@ def db_str(value: float) -> str:
 def db_pc(value: str) -> float:
     return (db(value) + 120) / 120 * 100
 def pc(value: str) -> float:
-    return float(value[:-1])
+    if value[-1] == '%':
+        return float(value[:-1])
 def onoff(value: str) -> bool:
     return value == 'On'
 def sub(nodes: list[Node]):

@@ -44,6 +44,8 @@ class Node:
         return str(self.data) if self.data else str(0)
     def add_callback(self, callback):
         self.callbacks.append(callback)
+    def remove_callback(self, callback):
+        self.callbacks.remove(callback)
     def set_data(self, data):
         self.data = data
         for callback in self.callbacks:
