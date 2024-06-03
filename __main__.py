@@ -99,7 +99,7 @@ class equalizers(ui.view):
         LABEL = (1, 4)
         BAND = (1, 6)
         high = ui.box((6, 0), (7, 80), [
-            ui.str((0, 6), (2, 17), "┤High Outputs PEQ├"),
+            ui.str((0, 6), (2, 10), "┤High PEQ├"),
             ui.onoff((0, 1), (1, 4), PEQ_HIGH, format=state.onoff),
             ui.str((2, 2), LABEL, "Freq"),
             ui.str((3, 2), LABEL, "Gain"),
@@ -113,7 +113,7 @@ class equalizers(ui.view):
             high.append(ui.edit((4, i * COL_W), BAND, PEQ_HIGH_BAND[i]['q']))
             high.append(ui.str((5, i * COL_W), (1, 6), PEQ_HIGH_BAND[i]['type']))
         mid = ui.box((13, 0), (7, 80), [
-            ui.str((0, 6), (2, 17), "┤Mid Outputs PEQ├"),
+            ui.str((0, 6), (2, 9), "┤Mid PEQ├"),
             ui.onoff((0, 1), (1, 4), PEQ_MID, format=state.onoff),
             ui.str((2, 2), LABEL, "Freq"),
             ui.str((3, 2), LABEL, "Gain"),
@@ -127,7 +127,7 @@ class equalizers(ui.view):
             mid.append(ui.edit((4, i * COL_W), BAND, PEQ_MID_BAND[i]['q']))
             mid.append(ui.str((5, i * COL_W), (1, 6), PEQ_MID_BAND[i]['type']))
         low = ui.box((20, 0), (7, 80), [
-            ui.str((0, 6), (2, 20), "┤Low Outputs PEQ├"),
+            ui.str((0, 6), (2, 9), "┤Low PEQ├"),
             ui.onoff((0, 1), (1, 4), PEQ_LOW, format=state.onoff),
             ui.str((2, 2), LABEL, "Freq"),
             ui.str((3, 2), LABEL, "Gain"),
