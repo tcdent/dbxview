@@ -62,7 +62,8 @@ class meters(ui.view):
                 ui.mute((5, 37), (1, 1), MUTE_R_LOW, format=state.onoff),
             ]),
             ui.box((13, 0), (6, 40), [
-                ui.str((0, 6), (2, 22), SS, format=lambda n: f"┤Subharmonic Synth {n}├"),
+                ui.str((0, 6), (2, 19), "┤Subharmonic Synth├"),
+                ui.onoff((0, 1), (1, 4), SS, format=state.onoff),
                 ui.str((2, 2), LABEL, "LVL"),
                 ui.str((3, 2), LABEL, "UP"),
                 ui.str((4, 2), LABEL, "LOW"),
@@ -85,8 +86,9 @@ class meters(ui.view):
         ]
 class equalizers(ui.view):
     subs = (
-        PEQ_MID, PEQ_MID_FL,
-        PEQ_MID_MANUAL, PEQ_MID_AUTO, PEQ_MID_LO, PEQ_MID_HS, PEQ_MID_BELL,
+        PEQ_HIGH, PEQ_HIGH_FL, PEQ_HIGH_HS, PEQ_HIGH_LO, PEQ_HIGH_BELL, PEQ_HIGH_AUTO, PEQ_HIGH_MANUAL,
+        PEQ_MID, PEQ_MID_FL, PEQ_MID_HS, PEQ_MID_LO, PEQ_MID_BELL, PEQ_MID_AUTO, PEQ_MID_MANUAL,
+        PEQ_LOW, PEQ_LOW_FL, PEQ_LOW_HS, PEQ_LOW_LO, PEQ_LOW_BELL, PEQ_LOW_AUTO, PEQ_LOW_MANUAL,
     ) + \
         tuple(PEQ_HIGH_BAND[i][key] for i in range(1, 9) for key in ('type', 'q', 'gain', 'freq')) + \
         tuple(PEQ_MID_BAND[i][key] for i in range(1, 9) for key in ('type', 'q', 'gain', 'freq')) + \
@@ -97,41 +99,44 @@ class equalizers(ui.view):
         LABEL = (1, 4)
         BAND = (1, 6)
         high = ui.box((6, 0), (7, 80), [
-            ui.str((0, 6), (2, 21), PEQ_MID, format=lambda n: f"┤High Outputs PEQ {n}├"),
+            ui.str((0, 6), (2, 17), "┤High Outputs PEQ├"),
+            ui.onoff((0, 1), (1, 4), PEQ_HIGH, format=state.onoff),
             ui.str((2, 2), LABEL, "Freq"),
             ui.str((3, 2), LABEL, "Gain"),
             ui.str((4, 2), LABEL, "   Q"),
             ui.str((5, 2), LABEL, "Type"),
         ])
         for i in range(1, 9):
-            high.append(ui.str((1, i * COL_W), BAND, str(i).center(6)))
-            high.append(ui.edit((2, i * COL_W), BAND, PEQ_HIGH_BAND[i]['freq'], format=state.hz))
+            high.append(ui.str((1, i * COL_W), BAND, str(i).center(BAND[1])))
+            high.append(ui.edit((2, i * COL_W), BAND, PEQ_HIGH_BAND[i]['freq'], format=state.pc_hz, filter=state.hz_pc))
             high.append(ui.edit((3, i * COL_W), BAND, PEQ_HIGH_BAND[i]['gain'], format=state.db))
             high.append(ui.edit((4, i * COL_W), BAND, PEQ_HIGH_BAND[i]['q']))
             high.append(ui.str((5, i * COL_W), (1, 6), PEQ_HIGH_BAND[i]['type']))
         mid = ui.box((13, 0), (7, 80), [
-            ui.str((0, 6), (2, 20), PEQ_MID, format=lambda n: f"┤Mid Outputs PEQ {n}├"),
+            ui.str((0, 6), (2, 17), "┤Mid Outputs PEQ├"),
+            ui.onoff((0, 1), (1, 4), PEQ_MID, format=state.onoff),
             ui.str((2, 2), LABEL, "Freq"),
             ui.str((3, 2), LABEL, "Gain"),
             ui.str((4, 2), LABEL, "   Q"),
             ui.str((5, 2), LABEL, "Type"),
         ])
         for i in range(1, 9):
-            mid.append(ui.str((1, i * COL_W), BAND, str(i).center(6)))
-            mid.append(ui.edit((2, i * COL_W), BAND, PEQ_MID_BAND[i]['freq'], format=state.hz))
+            mid.append(ui.str((1, i * COL_W), BAND, str(i).center(BAND[1])))
+            mid.append(ui.edit((2, i * COL_W), BAND, PEQ_MID_BAND[i]['freq'], format=state.pc_hz, filter=state.hz_pc))
             mid.append(ui.edit((3, i * COL_W), BAND, PEQ_MID_BAND[i]['gain'], format=state.db))
             mid.append(ui.edit((4, i * COL_W), BAND, PEQ_MID_BAND[i]['q']))
             mid.append(ui.str((5, i * COL_W), (1, 6), PEQ_MID_BAND[i]['type']))
         low = ui.box((20, 0), (7, 80), [
-            ui.str((0, 6), (2, 20), PEQ_MID, format=lambda n: f"┤Low Outputs PEQ {n}├"),
+            ui.str((0, 6), (2, 20), "┤Low Outputs PEQ├"),
+            ui.onoff((0, 1), (1, 4), PEQ_LOW, format=state.onoff),
             ui.str((2, 2), LABEL, "Freq"),
             ui.str((3, 2), LABEL, "Gain"),
             ui.str((4, 2), LABEL, "   Q"),
             ui.str((5, 2), LABEL, "Type"),
         ])
         for i in range(1, 9):
-            low.append(ui.str((1, i * COL_W), BAND, str(i).center(6)))
-            low.append(ui.edit((2, i * COL_W), BAND, PEQ_LOW_BAND[i]['freq'], format=state.hz))
+            low.append(ui.str((1, i * COL_W), BAND, str(i).center(BAND[1])))
+            low.append(ui.edit((2, i * COL_W), BAND, PEQ_LOW_BAND[i]['freq'], format=state.pc_hz, filter=state.hz_pc))
             low.append(ui.edit((3, i * COL_W), BAND, PEQ_LOW_BAND[i]['gain'], format=state.db))
             low.append(ui.edit((4, i * COL_W), BAND, PEQ_LOW_BAND[i]['q']))
             low.append(ui.str((5, i * COL_W), (1, 6), PEQ_LOW_BAND[i]['type']))

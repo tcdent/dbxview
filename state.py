@@ -1,4 +1,4 @@
-import re
+import re, math
 from . import N, Q, Node, log
 
 """
@@ -79,11 +79,11 @@ PEQ_HIGH_FL = N['Preset']['High Outputs PEQ']['SV']['Flatten']
 PEQ_HIGH_BELL = N['Preset']['High Outputs PEQ']['SV']['Bell']
 PEQ_HIGH_BAND = [None] * 9
 for i in range(1, 9):
-    PEQ_HIGH_BAND[i] ={
+    PEQ_HIGH_BAND[i] = {
         'type': N['Preset']['High Outputs PEQ']['SV'][f'Band_{i}_Type'],
         'q': N['Preset']['High Outputs PEQ']['SV'][f'Band_{i}_Q'],
         'gain': N['Preset']['High Outputs PEQ']['SV'][f'Band_{i}_Gain'],
-        'freq': N['Preset']['High Outputs PEQ']['SV'][f'Band_{i}_Frequency'],
+        'freq': N['Preset']['High Outputs PEQ']['SV'][f'Band_{i}_Frequency']['%'],
     }
 
 # Mid Parametic EQ
@@ -96,11 +96,11 @@ PEQ_MID_FL = N['Preset']['Mid Outputs PEQ']['SV']['Flatten']
 PEQ_MID_BELL = N['Preset']['Mid Outputs PEQ']['SV']['Bell']
 PEQ_MID_BAND = [None] * 9
 for i in range(1, 9):
-    PEQ_MID_BAND[i] ={
+    PEQ_MID_BAND[i] = {
         'type': N['Preset']['Mid Outputs PEQ']['SV'][f'Band_{i}_Type'],
         'q': N['Preset']['Mid Outputs PEQ']['SV'][f'Band_{i}_Q'],
         'gain': N['Preset']['Mid Outputs PEQ']['SV'][f'Band_{i}_Gain'],
-        'freq': N['Preset']['Mid Outputs PEQ']['SV'][f'Band_{i}_Frequency'],
+        'freq': N['Preset']['Mid Outputs PEQ']['SV'][f'Band_{i}_Frequency']['%'],
     }
 
 # Low Parametic EQ
@@ -113,11 +113,11 @@ PEQ_LOW_FL = N['Preset']['Low Outputs PEQ']['SV']['Flatten']
 PEQ_LOW_BELL = N['Preset']['Low Outputs PEQ']['SV']['Bell']
 PEQ_LOW_BAND = [None] * 9
 for i in range(1, 9):
-    PEQ_LOW_BAND[i] ={
+    PEQ_LOW_BAND[i] = {
         'type': N['Preset']['Low Outputs PEQ']['SV'][f'Band_{i}_Type'],
         'q': N['Preset']['Low Outputs PEQ']['SV'][f'Band_{i}_Q'],
         'gain': N['Preset']['Low Outputs PEQ']['SV'][f'Band_{i}_Gain'],
-        'freq': N['Preset']['Low Outputs PEQ']['SV'][f'Band_{i}_Frequency'],
+        'freq': N['Preset']['Low Outputs PEQ']['SV'][f'Band_{i}_Frequency']['%'],
     }
 
 # ie. -117.4dB
@@ -130,12 +130,15 @@ def db_int(value: str) -> int:
 def db_pc(value: str) -> float:
     return (db(value) + 120) / 120 * 100
 def pc(value: str) -> float:
-    if value[-1] == '%':
-        return float(value[:-1])
+    return float(value[:-1])
 RE_HZ = re.compile(r'(\d+\.\d+)Hz')
 def hz(value: str) -> float:
     match = RE_HZ.match(value)
     return float(match.group(1)) if match else 0.0
+def pc_hz(value: str) -> int:
+    return round(10 ** ((pc(value) / 100) * (math.log10(20000) - math.log10(20)) + math.log10(20)))
+def hz_pc(value: float) -> str:
+    return (math.log10(float(value)) - math.log10(20)) / (math.log10(20000) - math.log10(20)) * 100
 def onoff(value: str) -> bool:
     return value == 'On'
 

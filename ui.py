@@ -99,6 +99,10 @@ class NodeModule(Module):
         if self.format:
             self.value = self.format(self.value)
         self.render()
+    def save(self):
+        self.node.set_data(self.value)
+        self.update(self.node)
+        self.node.save()
     def destroy(self):
         if isinstance(self.node, Node):
             self.node.remove_callback(self.update)
@@ -154,10 +158,22 @@ class mute(bool):
     ON = "●"
     OFF_COLOR = GREEN
     ON_COLOR = RED
+class onoff(bool):
+    OFF = " O "
+    ON = " I "
+    OFF_COLOR = curses.A_REVERSE
+    ON_COLOR = BLUE_REV
+    def click(self, y, x):
+        if self.hit(y, x):
+            value = not self.value
+            self.value = 'On' if value else 'Off'
+            self.save()
+            self.render()
 class edit(NodeModule):
     color = BLUE_REV
-    def __init__(self, coords, dims, node, color=None, format: callable=None):
+    def __init__(self, coords, dims, node, color=None, format: callable=None, filter: callable=None):
         super().__init__(coords, dims, node, color, format)
+        self.filter = filter
         self.editing = False
         self.original_value = self.value
     def click(self, y, x):
@@ -175,6 +191,10 @@ class edit(NodeModule):
         self.editing = False
         self.color = BLUE_REV
         self.render()
+    def save(self):
+        if self.filter:
+            self.value = self.filter(self.value)
+        super().save()
     def input(self, ch):
         if not self.editing:
             return
@@ -187,10 +207,9 @@ class edit(NodeModule):
             self.value = self.original_value
         if ch == key.ENTER:
             self.stop_editing()
-            self.node.set_data(self.value)
-            self.update(self.node)
-            self.node.save()
+            self.save()
         self.render()
+
 class Contains:
     def append(self, module):
         self.modules.append(module)
