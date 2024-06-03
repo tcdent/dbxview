@@ -12,6 +12,8 @@ log = logging.getLogger('dbxview')
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.FileHandler(os.path.join(APP_PATH, 'dbxview.log')))
 
+UPDATE_COMMANDS = ('set', 'get', 'subr', 'setr',)
+LOG_COMMANDS = ('sub', 'unsub', )
 class Node:
     def __init__(self, name):
         self.name = name
@@ -46,6 +48,7 @@ class Node:
             callback(self)
     def save(self):
         global Q
+        log.info(f'set "{self.path}" "{self.data}"')
         Q.append(('set', f'{self.path}" "{self.data}'))
     @property
     def path(self):
@@ -56,7 +59,18 @@ class Node:
         path.reverse()
         return '\\'.join(path) + '\\'
     @classmethod
-    def parse(cls, path: str, data):
+    def parse_raw(cls, data) -> 'Node':
+        try:
+            # asyncget "\\Preset\InputMeters\SV\LeftInput" "0.0 dB"
+            cmd, path, value = [x.strip() for x in data.split('"') if x.strip()]
+            if cmd in LOG_COMMANDS:
+                log.info(f'{cmd} "{path}" "{value}"')
+            if cmd in UPDATE_COMMANDS:
+                return cls.parse(path, value)
+        except (ValueError, IndexError) as e:
+            log.info(f"ignored: {data}")
+    @classmethod
+    def parse(cls, path: str, data) -> 'Node':
         global N
         node, keys = N, path.split('\\')[2:]
         for key in keys:

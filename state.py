@@ -30,7 +30,6 @@ set "\\Preset\SubharmonicSynth\SV\SubharmonicSynth" "Off"
 set "\\Preset\SubharmonicSynth\SV\SubharmonicSynth" "On"
 """
 
-
 DEV = N['Node']['SV']['DeviceName']
 PRE = N['Storage']['Presets']['SV']['CurrentPreset']
 NAME = N['Storage']['Presets']['SV']['Name_13'] # TODO
@@ -57,7 +56,7 @@ R_LOW = N['Preset']['OutputMeters']['SV']['LowRightOutput']
 MUTE_R_LOW = N['Preset']['OutputGains']['SV']['LowRightOutputMute']
 LMT_LOW = N['Preset']['LowOutputsLimiter']['SV']['ThresholdMeter']
 
-# Subharminic Synth
+# Subharmonic Synth
 SH = N['Preset']['SubharmonicSynth']['SV']['Subharmonics']
 SH_ = N['Preset']['SubharmonicSynth']['SV']['Subharmonics']['%']
 SS = N['Preset']['SubharmonicSynth']['SV']['SubharmonicSynth']
@@ -96,9 +95,9 @@ def db_pc(value: str) -> float:
 def pc(value: str) -> float:
     if value[-1] == '%':
         return float(value[:-1])
-HZ_RE = re.compile(r'(\d+\.\d+)Hz')
+RE_HZ = re.compile(r'(\d+\.\d+)Hz')
 def hz(value: str) -> float:
-    match = HZ_RE.match(value)
+    match = RE_HZ.match(value)
     return float(match.group(1)) if match else 0.0
 def onoff(value: str) -> bool:
     return value == 'On'

@@ -13,27 +13,12 @@ class Listener:
             while b'\n' in self.buffer:
                 line, self.buffer = self.buffer.split(b'\n', 1)
                 yield line.decode(UTF8)
-    def parse(self, data):
-        # asyncget "\\Preset\InputMeters\SV\LeftInput" "0.0 dB"
-        if not data: return
-        try:
-            cmd, path, value = [x.strip() for x in data.split('"') if x.strip()]
-            if cmd == 'set' or cmd == 'get' or cmd == 'subr' or cmd == 'setr':
-                try:
-                    node = Node.parse(path, value)
-                except Exception as e:
-                    log.exception(e)
-            else:
-                raise ValueError(f"unknown command: {cmd}")
-        except (ValueError, IndexError):
-            log.info(f'ignored message: "{data.strip()}"')
-    def send_q(self):
-        if Q: cmd(self.sock, *Q.pop(0))
     def run(self):
         try:
             for data in self.receive():
-                self.parse(data)
-                self.send_q()
+                if not data: continue
+                Node.parse_raw(data)
+                if Q: cmd(self.sock, *Q.pop(0))
         except Exception as e:
             log.exception(e)
         finally:
@@ -48,11 +33,8 @@ def setup_tcp():
     thread.start()
     return sock, thread
 def send_message(sock: socket.socket, message: str):
-    #log.debug(f"send_message: {message}")
     sock.sendall(message.encode(UTF8) + b'\n')
 def cmd(sock, method, message):
-    if not method == 'asyncget':
-        log.debug(f"{method} \"{message}\"")
     if method == 'raw': # :/
         return send_message(sock, message)
     return send_message(sock, f"{method} \"{message}\"")
