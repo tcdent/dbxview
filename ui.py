@@ -73,6 +73,8 @@ class Module:
     def render(self):
         self.grid.addstr(0, 0, self.value.ljust(self.width)[:self.width], self.color)
         self.grid.refresh()
+    def hit(self, y, x):
+        return y >= self.y and y < self.y + self.height and x >= self.x and x < self.x + self.width
     def click(self, y, x): pass
     def input(self, ch): pass
     def destroy(self):
@@ -156,20 +158,20 @@ class edit(NodeModule):
         super().__init__(coords, dims, node, color, format)
         self.editing = False
     def click(self, y, x):
-        if y == self.y and x >= self.x and x < self.x + self.width:
-            if not self.editing:
-                self.start_editing()
-            else:
-                self.stop_editing()
+        if self.hit(y, x) and not self.editing:
+            self.start_editing()
+        elif self.editing:
+            self.stop_editing()
+            self.value = self.original_value
     def start_editing(self):
         self.editing = True
         self.original_value = self.value
         self.color = curses.A_REVERSE
-        self.grid.refresh()
+        self.render()
     def stop_editing(self):
         self.editing = False
         self.color = BLUE_REV
-        self.grid.refresh()
+        self.render()
     def input(self, ch):
         if not self.editing:
             return
@@ -178,9 +180,8 @@ class edit(NodeModule):
         if ch == key.BACK:
             self.value = self.value[:-1]
         if ch == key.ESC:
-            log.debug(f"esc: {self.original_value}")
             self.stop_editing()
-            #self.node.set_data(self.original_value)
+            self.value = self.original_value
         if ch == key.ENTER:
             log.debug(f"enter: {self.value}")
             self.stop_editing()
