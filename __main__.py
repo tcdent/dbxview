@@ -1,3 +1,10 @@
+import sys
+if __name__ == '__main__':
+    if '--discover' in sys.argv:
+        from .discover import yolo
+        yolo()
+        sys.exit(0)
+
 import curses
 from . import N, Q, ui, state, net, TARGET_IP
 from .state import *
@@ -101,8 +108,8 @@ class equalizers(ui.view):
         high = ui.box((6, 0), (7, 80), [
             ui.str((0, 6), (2, 10), "┤High PEQ├"),
             ui.onoff((0, 1), (1, 4), PEQ_HIGH, format=state.onoff),
-            ui.str((2, 2), LABEL, "Freq"),
-            ui.str((3, 2), LABEL, "Gain"),
+            ui.str((2, 2), LABEL, "  Hz"),
+            ui.str((3, 2), LABEL, "  dB"),
             ui.str((4, 2), LABEL, "   Q"),
             ui.str((5, 2), LABEL, "Type"),
         ])
@@ -115,8 +122,8 @@ class equalizers(ui.view):
         mid = ui.box((13, 0), (7, 80), [
             ui.str((0, 6), (2, 9), "┤Mid PEQ├"),
             ui.onoff((0, 1), (1, 4), PEQ_MID, format=state.onoff),
-            ui.str((2, 2), LABEL, "Freq"),
-            ui.str((3, 2), LABEL, "Gain"),
+            ui.str((2, 2), LABEL, "  Hz"),
+            ui.str((3, 2), LABEL, "  dB"),
             ui.str((4, 2), LABEL, "   Q"),
             ui.str((5, 2), LABEL, "Type"),
         ])
@@ -129,8 +136,8 @@ class equalizers(ui.view):
         low = ui.box((20, 0), (7, 80), [
             ui.str((0, 6), (2, 9), "┤Low PEQ├"),
             ui.onoff((0, 1), (1, 4), PEQ_LOW, format=state.onoff),
-            ui.str((2, 2), LABEL, "Freq"),
-            ui.str((3, 2), LABEL, "Gain"),
+            ui.str((2, 2), LABEL, "  Hz"),
+            ui.str((3, 2), LABEL, "  dB"),
             ui.str((4, 2), LABEL, "   Q"),
             ui.str((5, 2), LABEL, "Type"),
         ])

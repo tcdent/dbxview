@@ -25,6 +25,7 @@ class key:
     SPACE = 32
     PERIOD = 46
     PERCENT = 37
+    MINUS = 45
     @classmethod
     def is_numeric(cls, ch): return ch >= 48 and ch <= 57
     @classmethod
@@ -198,7 +199,7 @@ class edit(NodeModule):
     def input(self, ch):
         if not self.editing:
             return
-        if key.is_alpha(ch) or key.is_numeric(ch) or ch == key.PERIOD or ch == key.PERCENT:
+        if key.is_alpha(ch) or key.is_numeric(ch) or ch == key.PERIOD or ch == key.MINUS:
             self.value = str_(self.value) + chr(ch)
         if ch == key.BACK:
             self.value = str_(self.value)[:-1]

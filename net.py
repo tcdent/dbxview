@@ -16,9 +16,8 @@ class Listener:
     def run(self):
         try:
             for data in self.receive():
-                if not data: continue
-                Node.parse_raw(data)
-                if Q: cmd(self.sock, *Q.pop(0))
+                if data: Node.parse_raw(data)
+                if Q: [cmd(self.sock, *Q.pop(0)) for _ in range(len(Q))]
         except Exception as e:
             log.exception(e)
         finally:

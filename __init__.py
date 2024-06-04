@@ -13,7 +13,7 @@ log.setLevel(logging.DEBUG)
 log.addHandler(logging.FileHandler(os.path.join(APP_PATH, 'dbxview.log')))
 
 UPDATE_COMMANDS = ('set', 'get', 'subr', 'setr',)
-LOG_COMMANDS = ('sub', 'unsub', 'subr', 'get', 'setr')
+LOG_COMMANDS = ('sub', 'unsub', 'subr', 'setr')
 class Node:
     def __init__(self, name):
         self.name = name
