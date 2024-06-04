@@ -30,7 +30,6 @@ class key:
     def is_numeric(cls, ch): return ch >= 48 and ch <= 57
     @classmethod
     def is_alpha(cls, ch): return (ch >= 65 and ch <= 90) or (ch >= 97 and ch <= 122)    
-
 curses.initscr()
 curses.start_color()
 curses.init_color(11, *rgb(160, 55, 112).to_curses_color())
@@ -57,6 +56,8 @@ GREEN_REV = curses.color_pair(6)
 RED_REV = curses.color_pair(7)
 BLUE_REV = curses.color_pair(8)
 
+editing = False
+
 class Module:
     y = property(lambda self: self.coords.y)
     x = property(lambda self: self.coords.x)
@@ -73,8 +74,13 @@ class Module:
             self._grid = curses.newwin(self.height+1, self.width, self.y, self.x)
         return self._grid
     def render(self):
-        value = str_(self.value).ljust(self.width)[:self.width]
-        self.grid.addstr(0, 0, value, self.color)
+        if '\n' in str_(self.value): # TODO real multiline
+            lines = self.value.split('\n')
+            for i, line in enumerate(lines):
+                self.grid.addstr(i, 0, line, self.color)
+        else:
+            value = str_(self.value).ljust(self.width)[:self.width]
+            self.grid.addstr(0, 0, value, self.color)
         self.grid.refresh()
     def hit(self, y, x):
         return y >= self.y and y < self.y + self.height and x >= self.x and x < self.x + self.width
@@ -178,17 +184,21 @@ class edit(NodeModule):
         self.editing = False
         self.original_value = self.value
     def click(self, y, x):
-        if self.hit(y, x) and not self.editing:
+        if not self.editing and self.hit(y, x):
             self.start_editing()
         elif self.editing:
             self.stop_editing()
             self.value = self.original_value
     def start_editing(self):
+        global editing
+        editing = True
         self.editing = True
         self.original_value = self.value
         self.color = curses.A_REVERSE
         self.render()
     def stop_editing(self):
+        global editing
+        editing = False
         self.editing = False
         self.color = BLUE_REV
         self.render()

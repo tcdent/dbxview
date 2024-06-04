@@ -64,16 +64,19 @@ def yolo():
         cmd, path, value, keys = None, None, None, None
         try:
             cmd, path, value = [x.strip() for x in cmdish.split('"') if x.strip()]
+            if path[-1] == '\\': path = path[:-1]
             keys = path.split('\\')[2:]
         except (ValueError, IndexError) as e:
             try:
                 cmd, path = [x.strip() for x in cmdish.split('"') if x.strip()]
+                if path[-1] == '\\': path = path[:-1]
                 keys = path.split('\\')[2:]
             except (ValueError, IndexError) as e:
                 print(f"ignored: {cmdish}")
                 continue
         except KeyError:
             print(f"ignored: {cmdish}")
+        if len(keys) and keys[-1] == '': keys.pop()
         if keys and not path in paths:
             paths.append(path)
             P.append(keys)

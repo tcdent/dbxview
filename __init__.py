@@ -66,7 +66,10 @@ class Node:
             if cmd in LOG_COMMANDS:
                 log.info(f'{cmd} "{path}" "{value}"')
             if cmd in UPDATE_COMMANDS:
-                return cls.parse(path, value)
+                try:
+                    return cls.parse(path, value)
+                except ValueError as e:
+                    log.exception(e)
         except (ValueError, IndexError) as e:
             log.info(f"ignored: {data}")
     @classmethod

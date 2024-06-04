@@ -68,9 +68,9 @@ class meters(ui.view):
                 ui.mute((4, 37), (1, 1), MUTE_R_MID, format=state.onoff),
                 ui.mute((5, 37), (1, 1), MUTE_R_LOW, format=state.onoff),
             ]),
-            ui.box((13, 0), (6, 40), [
+            ui.box((14, 0), (6, 40), [
                 ui.str((0, 6), (2, 19), "┤Subharmonic Synth├"),
-                ui.onoff((0, 1), (1, 4), SS, format=state.onoff),
+                ui.onoff((0, 2), (1, 4), SS, format=state.onoff),
                 ui.str((2, 2), LABEL, "LVL"),
                 ui.str((3, 2), LABEL, "UP"),
                 ui.str((4, 2), LABEL, "LOW"),
@@ -107,7 +107,7 @@ class equalizers(ui.view):
         BAND = (1, 6)
         high = ui.box((6, 0), (7, 80), [
             ui.str((0, 6), (2, 10), "┤High PEQ├"),
-            ui.onoff((0, 1), (1, 4), PEQ_HIGH, format=state.onoff),
+            ui.onoff((0, 2), (1, 4), PEQ_HIGH, format=state.onoff),
             ui.str((2, 2), LABEL, "  Hz"),
             ui.str((3, 2), LABEL, "  dB"),
             ui.str((4, 2), LABEL, "   Q"),
@@ -121,7 +121,7 @@ class equalizers(ui.view):
             high.append(ui.str((5, i * COL_W), (1, 6), PEQ_HIGH_BAND[i]['type']))
         mid = ui.box((13, 0), (7, 80), [
             ui.str((0, 6), (2, 9), "┤Mid PEQ├"),
-            ui.onoff((0, 1), (1, 4), PEQ_MID, format=state.onoff),
+            ui.onoff((0, 2), (1, 4), PEQ_MID, format=state.onoff),
             ui.str((2, 2), LABEL, "  Hz"),
             ui.str((3, 2), LABEL, "  dB"),
             ui.str((4, 2), LABEL, "   Q"),
@@ -135,7 +135,7 @@ class equalizers(ui.view):
             mid.append(ui.str((5, i * COL_W), (1, 6), PEQ_MID_BAND[i]['type']))
         low = ui.box((20, 0), (7, 80), [
             ui.str((0, 6), (2, 9), "┤Low PEQ├"),
-            ui.onoff((0, 1), (1, 4), PEQ_LOW, format=state.onoff),
+            ui.onoff((0, 2), (1, 4), PEQ_LOW, format=state.onoff),
             ui.str((2, 2), LABEL, "  Hz"),
             ui.str((3, 2), LABEL, "  dB"),
             ui.str((4, 2), LABEL, "   Q"),
@@ -148,6 +148,81 @@ class equalizers(ui.view):
             low.append(ui.edit((4, i * COL_W), BAND, PEQ_LOW_BAND[i]['q']))
             low.append(ui.str((5, i * COL_W), (1, 6), PEQ_LOW_BAND[i]['type']))
         self.modules = [high, mid, low]
+class crossover(ui.view):
+    subs = (
+        XO_HIGH, XO_HIGH_, XO_MID, XO_MID_, XO_LOW, XO_LOW_,
+        XO_HIGH_LP_TYPE, XO_HIGH_HP_TYPE, XO_MID_LP_TYPE, XO_MID_HP_TYPE, XO_LOW_LP_TYPE, XO_LOW_HP_TYPE,
+        XO_HIGH_LP_, XO_HIGH_HP_, XO_MID_LP_, XO_MID_HP_, XO_LOW_LP_, XO_LOW_HP_, 
+        XO_HIGH_LP, XO_HIGH_HP, XO_MID_LP, XO_MID_HP, XO_LOW_LP, XO_LOW_HP,
+        XO_HIGH_POL, XO_MID_POL, XO_LOW_POL,
+    )
+    loops = ()
+    def init(self):
+        high = ui.box((6, 0), (7, 26), [
+            ui.str((0, 6), (2, 6), "┤High├"),
+            ui.str((2, 2), (1, 4), "dB"),
+            ui.str((3, 2), (1, 4), "LP"),
+            ui.str((4, 2), (1, 4), "HP"),
+            ui.str((5, 2), (1, 4), " ø"),
+        ])
+        high.append(ui.edit((2, 6), (1, 8), XO_HIGH, format=state.db))
+        high.append(ui.edit((3, 6), (1, 8), XO_HIGH_LP, format=state.hz_int))
+        high.append(ui.edit((3, 16), (1, 6), XO_HIGH_LP_TYPE))
+        high.append(ui.edit((4, 6), (1, 8), XO_HIGH_HP, format=state.hz_int))
+        high.append(ui.edit((4, 16), (1, 6), XO_HIGH_HP_TYPE))
+        high.append(ui.str((5, 6), (1, 6), XO_HIGH_POL))
+
+        mid = ui.box((6, 27), (7, 26), [
+            ui.str((0, 6), (2, 5), "┤Mid├"),
+            ui.str((2, 2), (1, 4), "dB"),
+            ui.str((3, 2), (1, 4), "LP"),
+            ui.str((4, 2), (1, 4), "HP"),
+            ui.str((5, 2), (1, 4), " ø"),
+        ])
+        mid.append(ui.edit((2, 6), (1, 8), XO_MID, format=state.db))
+        mid.append(ui.edit((3, 6), (1, 8), XO_MID_LP, format=state.hz_int))
+        mid.append(ui.edit((3, 16), (1, 6), XO_MID_LP_TYPE))
+        mid.append(ui.edit((4, 6), (1, 8), XO_MID_HP, format=state.hz_int))
+        mid.append(ui.edit((4, 16), (1, 6), XO_MID_HP_TYPE))
+        mid.append(ui.str((5, 6), (1, 6), XO_MID_POL))
+
+        low = ui.box((6, 54), (7, 26), [
+            ui.str((0, 6), (2, 5), "┤Low├"),
+            ui.str((2, 2), (1, 4), "dB"),
+            ui.str((3, 2), (1, 4), "LP"),
+            ui.str((4, 2), (1, 4), "HP"),
+            ui.str((5, 2), (1, 4), " ø"),
+        ])
+        low.append(ui.edit((2, 6), (1, 8), XO_LOW, format=state.db))
+        low.append(ui.edit((3, 6), (1, 8), XO_LOW_LP, format=state.hz_int))
+        low.append(ui.edit((3, 16), (1, 6), XO_LOW_LP_TYPE))
+        low.append(ui.edit((4, 6), (1, 8), XO_LOW_HP, format=state.hz_int))
+        low.append(ui.edit((4, 16), (1, 6), XO_LOW_HP_TYPE))
+        low.append(ui.str((5, 6), (1, 6), XO_LOW_POL))
+
+        self.modules = [high, mid, low]
+class settings(ui.view):
+    subs = (
+        NAME, DEV, CLASS, SW_VER, PRE, 
+    )
+    loops = ()
+    def init(self):
+        self.modules = [
+            ui.box((6, 0), (9, 80), [
+                ui.str((0, 6), (1, 10), "┤Settings├"),
+                ui.str((2, 4), (1, 12), "Device Name"),
+                ui.str((3, 4), (1, 12), "     Preset"),
+                ui.str((4, 4), (1, 12), "Preset Name"),
+                ui.str((5, 4), (1, 12), "Device Class"),
+                ui.str((6, 4), (1, 12), "Software Ver"),
+
+                ui.edit((2, 20), (1, 20), DEV),
+                ui.edit((3, 20), (1, 20), PRE),
+                ui.edit((4, 20), (1, 20), NAME),
+                ui.str((5, 20), (1, 20), CLASS),
+                ui.str((6, 20), (1, 20), SW_VER),
+            ]),
+        ]
 def main(stdscr):
     dims = (80, 30)
     grid = ui.app(dims)
@@ -156,13 +231,16 @@ def main(stdscr):
     def setup(stdscr):
         grid.init(stdscr)
         grid.append(ui.view(dims, [
-            ui.title((0, 0), (2, 80), NAME),
-            ui.str((3, 0), (1, 80), DEV),
-            ui.str((28, 65), (1, 20), f"{TARGET_IP}"),
-            ui.str((28, 0), (1, 65), f" [q]uit [m]eters [e]qualizers"),
+            ui.str((0, 0), (1, 20), CLASS),
+            ui.str((1, 0), (1, 20), SW_VER),
+            ui.title((0, 27), (2, 27), NAME),
+            ui.str((1, 65), (1, 20), DEV),
+            ui.str((0, 65), (1, 15), TARGET_IP),
+            
+            ui.str((28, 0), (1, 65), f" [q]uit [m]eters [e]qualizers [c]rossover [s]ettings"),
         ]))
         grid.render()
-        state.sub((L_IN, R_IN, DEV, PRE, NAME, CURR_PRE,))
+        state.sub((L_IN, R_IN, DEV, PRE, NAME, CLASS, SW_VER))
     def load_view(view_cls):
         nonlocal view
         if view:
@@ -180,12 +258,17 @@ def main(stdscr):
         if ch == curses.KEY_MOUSE:
             _, x, y, _, _ = curses.getmouse()
             grid.click(y, x)
-        if ch == ord('q'):
-            break
-        elif ch == ord('m'):
-            load_view(meters)
-        elif ch == ord('e'):
-            load_view(equalizers)
+        if not ui.editing:
+            if ch == ord('q'):
+                break
+            elif ch == ord('m'):
+                load_view(meters)
+            elif ch == ord('e'):
+                load_view(equalizers)
+            elif ch == ord('c'):
+                load_view(crossover)
+            elif ch == ord('s'):
+                load_view(settings)
         if view:
             if ch != -1:
                 view.input(ch)
