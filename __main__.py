@@ -155,6 +155,7 @@ class crossover(ui.view):
         XO_HIGH_LP_, XO_HIGH_HP_, XO_MID_LP_, XO_MID_HP_, XO_LOW_LP_, XO_LOW_HP_, 
         XO_HIGH_LP, XO_HIGH_HP, XO_MID_LP, XO_MID_HP, XO_LOW_LP, XO_LOW_HP,
         XO_HIGH_POL, XO_MID_POL, XO_LOW_POL,
+        DLY_HIGH, DLY_MID, DLY_LOW,
     )
     loops = ()
     def init(self):
@@ -201,6 +202,38 @@ class crossover(ui.view):
         low.append(ui.str((5, 6), (1, 6), XO_LOW_POL))
 
         self.modules = [high, mid, low]
+class delay(ui.view):
+    subs = (
+        DLY_HIGH, DLY_MID, DLY_LOW,
+        DLY_HIGH_, DLY_MID_, DLY_LOW_,
+    )
+    loops = ()
+    def init(self):
+        high = ui.box((6, 0), (7, 26), [
+            ui.str((0, 6), (2, 6), "┤High├"),
+            ui.str((2, 2), (1, 4), " %"),
+            ui.str((3, 2), (1, 4), "ms"),
+        ])
+        high.append(ui.edit((2, 6), (1, 8), DLY_HIGH_, filter=state.pc_int))
+        high.append(ui.str((3, 6), (1, 12), DLY_HIGH))
+
+        mid = ui.box((6, 27), (7, 26), [
+            ui.str((0, 6), (2, 5), "┤Mid├"),
+            ui.str((2, 2), (1, 4), " %"),
+            ui.str((3, 2), (1, 4), "ms"),
+        ])
+        mid.append(ui.edit((2, 6), (1, 8), DLY_MID_, filter=state.pc_int))
+        mid.append(ui.str((3, 6), (1, 12), DLY_MID))
+
+        low = ui.box((6, 54), (7, 26), [
+            ui.str((0, 6), (2, 5), "┤Low├"),
+            ui.str((2, 2), (1, 4), " %"),
+            ui.str((3, 2), (1, 4), "ms"),
+        ])
+        low.append(ui.edit((2, 6), (1, 8), DLY_LOW_, filter=state.pc_int))
+        low.append(ui.str((3, 6), (1, 12), DLY_LOW))
+
+        self.modules = [high, mid, low]
 class settings(ui.view):
     subs = (
         NAME, DEV, CLASS, SW_VER, PRE, 
@@ -224,6 +257,7 @@ class settings(ui.view):
             ]),
         ]
 def main(stdscr):
+    CMD_STR = f" [q]uit [m]eters [e]qualizers [c]rossover [d]elay [s]ettings"
     dims = (80, 30)
     grid = ui.app(dims)
     view = None
@@ -237,7 +271,7 @@ def main(stdscr):
             ui.str((1, 65), (1, 20), DEV),
             ui.str((0, 65), (1, 15), TARGET_IP),
             
-            ui.str((28, 0), (1, 65), f" [q]uit [m]eters [e]qualizers [c]rossover [s]ettings"),
+            ui.str((28, 0), (1, 65), CMD_STR),
         ]))
         grid.render()
         state.sub((L_IN, R_IN, DEV, PRE, NAME, CLASS, SW_VER))
@@ -251,6 +285,12 @@ def main(stdscr):
         view.init()
         grid.append(view)
         state.sub(view.subs)
+        # underline rendered CMD_STR for the active command
+        view_name = view.__class__.__name__
+        cmd_i = CMD_STR.find(f"[{view_name[0]}]{view_name[1:]}")
+        cmd_len = len(view_name)
+        grid.append(ui.str((29, 0), (1, 80), " " * 80))
+        grid.append(ui.str((29, cmd_i), (1, 80), "*" * (cmd_len + 2)))        
     setup(stdscr)
     load_view(meters)
     while True:
@@ -267,6 +307,8 @@ def main(stdscr):
                 load_view(equalizers)
             elif ch == ord('c'):
                 load_view(crossover)
+            elif ch == ord('d'):
+                load_view(delay)
             elif ch == ord('s'):
                 load_view(settings)
         if view:

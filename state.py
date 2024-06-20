@@ -10,24 +10,33 @@ def db_int(value: str) -> int:
 def db_pc(value: str) -> float:
     return (db(value) + 120) / 120 * 100
 def pc(value: str) -> float:
-    return float(value[:-1])
+    value = value[:-1] if value[-1] == '%' else value
+    return float(value)
+def pc_int(value: str) -> int:
+    return round(pc(value))
 RE_HZ = re.compile(r'(\d+\.?\d*)Hz')
 RE_KHZ = re.compile(r'(\d+\.?\d*)kHz')
 def hz(value: str) -> float:
+    try:
+        return float(value)
+    except ValueError: pass
     match = RE_HZ.match(value)
     if match:
         return float(match.group(1))
     match = RE_KHZ.match(value)
     if match:
         return float(match.group(1)) * 1000
-    return 0.0
+LF_HZ, HF_HZ = 20, 20000 # TODO i think we go lower
+LF_HZ_LOG = math.log10(LF_HZ) 
+HF_HZ_LOG = math.log10(20000)
 def pc_hz(value: str) -> int:
-    return round(10 ** ((pc(value) / 100) * (math.log10(20000) - math.log10(20)) + math.log10(20)))
+    return round(10 ** ((pc(value) / 100) * (HF_HZ_LOG - LF_HZ_LOG) + LF_HZ_LOG))
 def hz_pc(value: float) -> str:
-    value = max(hz(value), 20) # TODO: scale log to actual range
-    return (math.log10(value) - math.log10(20)) / (math.log10(20000) - math.log10(20)) * 100
+    value = max(hz(value), LF_HZ) 
+    return ((math.log10(value) - LF_HZ_LOG) / (HF_HZ_LOG - LF_HZ_LOG)) * 100
 def hz_int(value: str) -> int:
-    return round(hz(value))
+    value = hz(value)
+    return round(value if value else 0)
 def onoff(value: str) -> bool:
     return value == 'On'
 
@@ -101,12 +110,12 @@ LMT_MID = N['Preset']['Mid Outputs Limiter']['SV']['ThresholdMeter']
 LMT_HIGH = N['Preset']['High Outputs Limiter']['SV']['ThresholdMeter']
 
 # Delay
-VAR = N['Preset']['Low Outputs Delay']['SV']['Amount']
-VAR = N['Preset']['Low Outputs Delay']['SV']['Amount']['%']
-VAR = N['Preset']['Mid Outputs Delay']['SV']['Amount']
-VAR = N['Preset']['Mid Outputs Delay']['SV']['Amount']['%']
-VAR = N['Preset']['High Outputs Delay']['SV']['Amount']
-VAR = N['Preset']['High Outputs Delay']['SV']['Amount']['%']
+DLY_LOW = N['Preset']['Low Outputs Delay']['SV']['Amount']
+DLY_LOW_ = N['Preset']['Low Outputs Delay']['SV']['Amount']['%']
+DLY_MID = N['Preset']['Mid Outputs Delay']['SV']['Amount']
+DLY_MID_ = N['Preset']['Mid Outputs Delay']['SV']['Amount']['%']
+DLY_HIGH = N['Preset']['High Outputs Delay']['SV']['Amount']
+DLY_HIGH_ = N['Preset']['High Outputs Delay']['SV']['Amount']['%']
 
 # Crossover
 XO_BANDS = N['Preset']['Crossover']['AT']['NumBands']

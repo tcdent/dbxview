@@ -29,7 +29,8 @@ class key:
     @classmethod
     def is_numeric(cls, ch): return ch >= 48 and ch <= 57
     @classmethod
-    def is_alpha(cls, ch): return (ch >= 65 and ch <= 90) or (ch >= 97 and ch <= 122)    
+    def is_alpha(cls, ch): return (ch >= 65 and ch <= 90) or (ch >= 97 and ch <= 122)
+
 curses.initscr()
 curses.start_color()
 curses.init_color(11, *rgb(160, 55, 112).to_curses_color())
@@ -133,16 +134,17 @@ class bar(NodeModule):
             return YELLOW
         return RED
     def render(self):
+        #self.grid.erase()
         if not isinstance(self.value, (int, float)):
             self.value = 0.0
         bar_width = min(math.floor(self.value / 100 * self.width), self.width)
         for x in range(max(bar_width, 0)):
             self.grid.addch(0, x, self.FULL, self.color)
-        if self.value % 100 >= 50:
-            bar_width += 2
-            self.grid.addch(0, bar_width, self.HALF, self.color)
+        # if self.value % 100 >= 50:
+        #     bar_width += 1
+        #     self.grid.addch(0, bar_width+1, self.HALF, self.color)
         for x in range(bar_width, self.width):
-            self.grid.addch(0, x, "-", self.color)
+            self.grid.addch(0, x, "-", BLUE)
         self.grid.refresh()
 class bool(NodeModule):
     OFF = "○"
